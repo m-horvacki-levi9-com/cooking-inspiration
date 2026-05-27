@@ -1,0 +1,12 @@
+{
+  "name": "cooking-inspiration",
+  "version": "1.0.0",
+  "description": "One-page cooking inspiration web app with Bring! integration",
+  "scripts": {
+    "start": "python3 -m http.server 4173 --bind 127.0.0.1 || python -m http.server 4173 --bind 127.0.0.1 || py -3 -m http.server 4173 --bind 127.0.0.1",
+    "test": "node --test"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC"
+}

@@ -1,0 +1,357 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Cooking Inspiration</title>
+    <meta
+      name="description"
+      content="Discover five curated dinner ideas from popular recipe sources and add ingredients to Bring! in one tap."
+    />
+    <link rel="stylesheet" href="./styles.css" />
+    <script async src="https://platform.getbring.com/widgets/import.js"></script>
+    <script src="./app.js" defer></script>
+  </head>
+  <body>
+    <main class="page-shell">
+      <section class="hero">
+        <div class="hero-copy">
+          <p class="eyebrow">Weekend cooking made easy</p>
+          <h1>Choose a modern dinner idea and send the ingredients to Bring!</h1>
+          <p class="hero-text">
+            Explore four featured recipes inspired by popular cooking sources:
+            Cookpad, Food Network, The Kitchn, and Serious Eats.
+            Select the one you want to cook and use the Bring! import button on
+            the card to add ingredients to your shopping list.
+          </p>
+        </div>
+
+        <aside class="selection-panel" aria-live="polite">
+          <p class="panel-label">Currently selected</p>
+          <h2 id="selected-title">Japanese Chicken Curry</h2>
+          <p id="selected-source" class="selected-source">Cookpad</p>
+          <p id="selected-summary" class="selected-summary">
+            A bright Japanese-style curry packed with chicken, potatoes, and
+            carrots for a comforting family dinner.
+          </p>
+
+          <dl class="selected-meta">
+            <div>
+              <dt>Ready in</dt>
+              <dd id="selected-time">45 mins</dd>
+            </div>
+            <div>
+              <dt>Servings</dt>
+              <dd id="selected-servings">4</dd>
+            </div>
+          </dl>
+
+          <div>
+            <h3>Shopping preview</h3>
+            <ul id="selected-ingredients" class="ingredient-preview">
+              <li>1 lb chicken thighs</li>
+              <li>2 potatoes</li>
+              <li>2 carrots</li>
+              <li>1 onion</li>
+            </ul>
+          </div>
+
+          <a
+            id="selected-link"
+            class="source-link"
+            href="https://cookpad.com/eng/recipes/7287250"
+            target="_blank"
+            rel="noreferrer"
+            >Visit source</a
+          >
+        </aside>
+      </section>
+
+      <section class="recipes" aria-label="Featured recipes">
+        <article
+          class="recipe-card"
+          data-selected="false"
+          data-source="Cookpad"
+          data-summary="A bright Japanese-style curry packed with chicken, potatoes, and carrots for a comforting family dinner."
+          data-time="45 mins"
+          data-servings="4"
+          data-link="https://cookpad.com/eng/recipes/7287250"
+          itemscope
+          itemtype="https://schema.org/Recipe"
+        >
+          <div class="card-topline">
+            <span class="source-badge" itemprop="author">Cookpad</span>
+            <span class="meta-chip" itemprop="totalTime" content="PT45M"
+              >45 mins</span
+            >
+          </div>
+          <h2 itemprop="name">Japanese Chicken Curry</h2>
+          <p itemprop="description">
+            A gentle, savory curry with tender chicken, sweet carrots, and
+            potatoes served over rice.
+          </p>
+          <meta itemprop="recipeYield" content="4 servings" />
+          <div class="card-meta">
+            <span>🍽 4 servings</span>
+            <span>🍛 Comfort classic</span>
+          </div>
+          <ul class="ingredient-list">
+            <li itemprop="recipeIngredient">1 lb chicken thighs</li>
+            <li itemprop="recipeIngredient">2 potatoes</li>
+            <li itemprop="recipeIngredient">2 carrots</li>
+            <li itemprop="recipeIngredient">1 onion</li>
+            <li itemprop="recipeIngredient">3 curry roux cubes</li>
+            <li itemprop="recipeIngredient">3 cups cooked rice</li>
+          </ul>
+          <ol class="instruction-list">
+            <li itemprop="recipeInstructions">Brown the chicken and onion.</li>
+            <li itemprop="recipeInstructions">
+              Simmer with potatoes and carrots until tender.
+            </li>
+            <li itemprop="recipeInstructions">
+              Melt in the curry roux and serve over rice.
+            </li>
+          </ol>
+          <div class="card-actions">
+            <button type="button" class="select-button">Select recipe</button>
+            <a
+              class="source-link"
+              itemprop="url"
+              href="https://cookpad.com/eng/recipes/7287250"
+              target="_blank"
+              rel="noreferrer"
+              >View source</a
+            >
+          </div>
+          <div class="bring-slot">
+            <div
+              data-bring-import="https://cookpad.com/eng/recipes/7287250"
+              data-bring-language="en"
+              data-bring-theme="light"
+              data-title="Japanese Chicken Curry"
+              data-items="1 lb chicken thighs, 2 potatoes, 2 carrots, 1 onion, 3 curry roux cubes, 3 cups cooked rice"
+            >
+              <a class="bring-import-link" href="https://www.getbring.com/en/home" rel="noreferrer" target="_blank"
+                >Import with Bring!</a
+              >
+            </div>
+          </div>
+        </article>
+
+        <article
+          class="recipe-card"
+          data-selected="false"
+          data-source="Food Network"
+          data-summary="An easy sheet-pan favorite with juicy sausage, peppers, and gnocchi roasted until golden and crisp."
+          data-time="35 mins"
+          data-servings="4"
+          data-link="https://www.foodnetwork.com/recipes/food-network-kitchen/crispy-sheet-pan-gnocchi-with-sausage-and-peppers-4548271"
+          itemscope
+          itemtype="https://schema.org/Recipe"
+        >
+          <div class="card-topline">
+            <span class="source-badge" itemprop="author">Food Network</span>
+            <span class="meta-chip" itemprop="totalTime" content="PT35M"
+              >35 mins</span
+            >
+          </div>
+          <h2 itemprop="name">Sheet Pan Sausage and Gnocchi</h2>
+          <p itemprop="description">
+            Crisp gnocchi, sweet peppers, and savory sausage all roasted on one
+            tray for easy cleanup.
+          </p>
+          <meta itemprop="recipeYield" content="4 servings" />
+          <div class="card-meta">
+            <span>🍽 4 servings</span>
+            <span>🔥 One-pan dinner</span>
+          </div>
+          <ul class="ingredient-list">
+            <li itemprop="recipeIngredient">1 lb shelf-stable gnocchi</li>
+            <li itemprop="recipeIngredient">12 oz Italian sausage</li>
+            <li itemprop="recipeIngredient">2 bell peppers</li>
+            <li itemprop="recipeIngredient">1 red onion</li>
+            <li itemprop="recipeIngredient">2 tbsp olive oil</li>
+            <li itemprop="recipeIngredient">1 tsp Italian seasoning</li>
+          </ul>
+          <ol class="instruction-list">
+            <li itemprop="recipeInstructions">
+              Toss gnocchi, sausage, and vegetables with oil and seasoning.
+            </li>
+            <li itemprop="recipeInstructions">
+              Roast until everything is caramelized and crisp.
+            </li>
+            <li itemprop="recipeInstructions">Serve hot straight from the pan.</li>
+          </ol>
+          <div class="card-actions">
+            <button type="button" class="select-button">Select recipe</button>
+            <a
+              class="source-link"
+              itemprop="url"
+              href="https://www.foodnetwork.com/recipes/food-network-kitchen/crispy-sheet-pan-gnocchi-with-sausage-and-peppers-4548271"
+              target="_blank"
+              rel="noreferrer"
+              >View source</a
+            >
+          </div>
+          <div class="bring-slot">
+            <div
+              data-bring-import="https://cookpad.com/eng/recipes/24409325"
+              data-bring-language="en"
+              data-bring-theme="light"
+              data-title="Sheet Pan Sausage and Gnocchi"
+              data-items="1 lb shelf-stable gnocchi, 12 oz Italian sausage, 2 bell peppers, 1 red onion, 2 tbsp olive oil, 1 tsp Italian seasoning"
+            >
+              <a class="bring-import-link" href="https://www.getbring.com/en/home" rel="noreferrer" target="_blank"
+                >Import with Bring!</a
+              >
+            </div>
+          </div>
+        </article>
+
+        <article
+          class="recipe-card"
+          data-selected="false"
+          data-source="The Kitchn"
+          data-summary="A vibrant lemon-herb salmon tray bake with asparagus and couscous for a fresh but effortless dinner."
+          data-time="25 mins"
+          data-servings="2"
+          data-link="https://www.thekitchn.com/sheet-pan-lemon-pepper-salmon-with-potatoes-and-leeks-23312777"
+          itemscope
+          itemtype="https://schema.org/Recipe"
+        >
+          <div class="card-topline">
+            <span class="source-badge" itemprop="author">The Kitchn</span>
+            <span class="meta-chip" itemprop="totalTime" content="PT25M"
+              >25 mins</span
+            >
+          </div>
+          <h2 itemprop="name">Lemon Herb Salmon Tray Bake</h2>
+          <p itemprop="description">
+            Fresh salmon, crisp asparagus, and fluffy couscous finished with a
+            quick lemon dressing.
+          </p>
+          <meta itemprop="recipeYield" content="2 servings" />
+          <div class="card-meta">
+            <span>🍽 2 servings</span>
+            <span>🐟 Bright and fresh</span>
+          </div>
+          <ul class="ingredient-list">
+            <li itemprop="recipeIngredient">2 salmon fillets</li>
+            <li itemprop="recipeIngredient">1 bunch asparagus</li>
+            <li itemprop="recipeIngredient">1 cup couscous</li>
+            <li itemprop="recipeIngredient">1 lemon</li>
+            <li itemprop="recipeIngredient">2 tbsp olive oil</li>
+            <li itemprop="recipeIngredient">1 tbsp chopped dill</li>
+          </ul>
+          <ol class="instruction-list">
+            <li itemprop="recipeInstructions">
+              Roast the salmon and asparagus until just cooked.
+            </li>
+            <li itemprop="recipeInstructions">
+              Prepare couscous while the tray bake finishes.
+            </li>
+            <li itemprop="recipeInstructions">
+              Toss everything with lemon juice and dill.
+            </li>
+          </ol>
+          <div class="card-actions">
+            <button type="button" class="select-button">Select recipe</button>
+            <a
+              class="source-link"
+              itemprop="url"
+              href="https://www.thekitchn.com/sheet-pan-lemon-pepper-salmon-with-potatoes-and-leeks-23312777"
+              target="_blank"
+              rel="noreferrer"
+              >View source</a
+            >
+          </div>
+          <div class="bring-slot">
+            <div
+              data-bring-import="https://cookpad.com/eng/recipes/448250"
+              data-bring-language="en"
+              data-bring-theme="light"
+              data-title="Lemon Herb Salmon Tray Bake"
+              data-items="2 salmon fillets, 1 bunch asparagus, 1 cup couscous, 1 lemon, 2 tbsp olive oil, 1 tbsp chopped dill"
+            >
+              <a class="bring-import-link" href="https://www.getbring.com/en/home" rel="noreferrer" target="_blank"
+                >Import with Bring!</a
+              >
+            </div>
+          </div>
+        </article>
+
+        <article
+          class="recipe-card"
+          data-selected="false"
+          data-source="Serious Eats"
+          data-summary="A restaurant-style mushroom pasta with browned butter, thyme, and plenty of parmesan."
+          data-time="40 mins"
+          data-servings="4"
+          data-link="https://www.seriouseats.com/brown-butter-mushroom-pasta-recipe"
+          itemscope
+          itemtype="https://schema.org/Recipe"
+        >
+          <div class="card-topline">
+            <span class="source-badge" itemprop="author">Serious Eats</span>
+            <span class="meta-chip" itemprop="totalTime" content="PT40M"
+              >40 mins</span
+            >
+          </div>
+          <h2 itemprop="name">Brown Butter Mushroom Pasta</h2>
+          <p itemprop="description">
+            Deeply savory mushrooms, silky pasta, and nutty brown butter with a
+            shower of parmesan.
+          </p>
+          <meta itemprop="recipeYield" content="4 servings" />
+          <div class="card-meta">
+            <span>🍽 4 servings</span>
+            <span>🍄 Rich umami</span>
+          </div>
+          <ul class="ingredient-list">
+            <li itemprop="recipeIngredient">12 oz pasta</li>
+            <li itemprop="recipeIngredient">12 oz mixed mushrooms</li>
+            <li itemprop="recipeIngredient">4 tbsp butter</li>
+            <li itemprop="recipeIngredient">2 garlic cloves</li>
+            <li itemprop="recipeIngredient">1 tsp fresh thyme</li>
+            <li itemprop="recipeIngredient">1/2 cup grated parmesan</li>
+          </ul>
+          <ol class="instruction-list">
+            <li itemprop="recipeInstructions">
+              Brown the butter and sauté mushrooms until deeply golden.
+            </li>
+            <li itemprop="recipeInstructions">
+              Add garlic, thyme, and cooked pasta with pasta water.
+            </li>
+            <li itemprop="recipeInstructions">
+              Finish with parmesan for a glossy sauce.
+            </li>
+          </ol>
+          <div class="card-actions">
+            <button type="button" class="select-button">Select recipe</button>
+            <a
+              class="source-link"
+              itemprop="url"
+              href="https://www.seriouseats.com/brown-butter-mushroom-pasta-recipe"
+              target="_blank"
+              rel="noreferrer"
+              >View source</a
+            >
+          </div>
+          <div class="bring-slot">
+            <div
+              data-bring-import="https://cookpad.com/eng/recipes/411822"
+              data-bring-language="en"
+              data-bring-theme="light"
+              data-title="Brown Butter Mushroom Pasta"
+              data-items="12 oz pasta, 12 oz mixed mushrooms, 4 tbsp butter, 2 garlic cloves, 1 tsp fresh thyme, 1/2 cup grated parmesan"
+            >
+              <a class="bring-import-link" href="https://www.getbring.com/en/home" rel="noreferrer" target="_blank"
+                >Import with Bring!</a
+              >
+            </div>
+          </div>
+        </article>
+      </section>
+    </main>
+  </body>
+</html>
