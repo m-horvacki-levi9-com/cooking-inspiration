@@ -13,6 +13,7 @@ public static class DependencyInjection
         {
             client.BaseAddress = new Uri("https://cookpad.com");
             client.DefaultRequestHeaders.UserAgent.ParseAdd("CookingInspiration/1.0");
+            client.Timeout = TimeSpan.FromSeconds(10);
         });
 
         return services;

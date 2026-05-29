@@ -1,5 +1,5 @@
 import type { FormEvent } from 'react';
-import { useMemo, useState } from 'react';
+import { useState } from 'react';
 
 import RecipeCard from '../components/RecipeCard';
 import { searchRecipes, type RecipeSummary } from '../services/recipeSearchService';
@@ -14,7 +14,6 @@ function HomePage() {
   const [submittedKeyword, setSubmittedKeyword] = useState('');
 
   const trimmedKeyword = keyword.trim();
-  const visibleRecipes = useMemo(() => recipes.slice(0, 4), [recipes]);
   const isSearchDisabled = trimmedKeyword.length === 0 || searchStatus === 'loading';
 
   async function handleSubmit(event: FormEvent<HTMLFormElement>) {
@@ -89,12 +88,12 @@ function HomePage() {
           <div className="home-page__results-header">
             <h2 id="recipe-results-heading">Recipe ideas</h2>
             <p>
-              Showing {visibleRecipes.length} match{visibleRecipes.length === 1 ? '' : 'es'} for “
+              Showing {recipes.length} match{recipes.length === 1 ? '' : 'es'} for "
               {submittedKeyword}”.
             </p>
           </div>
           <div className="home-page__grid">
-            {visibleRecipes.map((recipe) => (
+            {recipes.map((recipe) => (
               <RecipeCard key={recipe.cookpadUrl} recipe={recipe} />
             ))}
           </div>

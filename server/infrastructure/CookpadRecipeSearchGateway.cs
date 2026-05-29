@@ -42,8 +42,7 @@ public sealed partial class CookpadRecipeSearchGateway(HttpClient httpClient) : 
 
     private static bool ContainsNoResultsMarker(string html)
     {
-        var text = CleanText(html) ?? string.Empty;
-        return NoResultsMarkers.Any(marker => text.Contains(marker, StringComparison.OrdinalIgnoreCase));
+        return NoResultsMarkers.Any(marker => html.Contains(marker, StringComparison.OrdinalIgnoreCase));
     }
 
     private static bool IsChallengePage(string html)
@@ -102,10 +101,11 @@ public sealed partial class CookpadRecipeSearchGateway(HttpClient httpClient) : 
 
     private static string? GetImageUrl(HtmlNode node)
     {
+        var imgNode = node.SelectSingleNode(".//img");
         return FirstNonEmpty(
-            node.SelectSingleNode(".//img")?.GetAttributeValue("src", null),
-            node.SelectSingleNode(".//img")?.GetAttributeValue("data-src", null),
-            node.SelectSingleNode(".//img")?.GetAttributeValue("data-lazy-src", null));
+            imgNode?.GetAttributeValue("src", null),
+            imgNode?.GetAttributeValue("data-src", null),
+            imgNode?.GetAttributeValue("data-lazy-src", null));
     }
 
     private static string? GetTitle(HtmlNode node)
