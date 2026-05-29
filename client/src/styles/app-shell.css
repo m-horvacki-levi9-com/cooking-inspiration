@@ -1,13 +1,13 @@
 .app-shell {
   min-height: 100vh;
   display: grid;
-  place-items: center;
+  align-content: center;
   padding: 2rem;
 }
 
 .app-shell__header,
 .app-shell__main {
-  width: min(100%, 48rem);
+  width: min(100%, 72rem);
 }
 
 .app-shell__header {
