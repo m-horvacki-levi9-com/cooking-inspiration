@@ -1,0 +1,12 @@
+client/node_modules/
+client/dist/
+client/.env
+client/playwright-report/
+client/test-results/
+client/coverage/
+server/bin/
+server/obj/
+server/tests/bin/
+server/tests/obj/
+PoC/node_modules/
+.vs/
