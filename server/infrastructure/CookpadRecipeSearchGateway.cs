@@ -69,7 +69,11 @@ public sealed partial class CookpadRecipeSearchGateway(HttpClient httpClient) : 
     private static CookpadRecipeCandidate? MapRecipe(HtmlNode node)
     {
         var href = node.GetAttributeValue("href", string.Empty).Trim();
-        if (!href.Contains("/recipes/", StringComparison.OrdinalIgnoreCase))
+        var path = Uri.TryCreate(href, UriKind.Absolute, out var parsedUri)
+            ? parsedUri.AbsolutePath
+            : href;
+
+        if (!RecipePathRegex().IsMatch(path))
         {
             return null;
         }
@@ -133,4 +137,7 @@ public sealed partial class CookpadRecipeSearchGateway(HttpClient httpClient) : 
 
     [GeneratedRegex(@"\s+")]
     private static partial Regex WhitespaceRegex();
+
+    [GeneratedRegex(@"^/[^/]+/recipes/\d+$", RegexOptions.IgnoreCase)]
+    private static partial Regex RecipePathRegex();
 }

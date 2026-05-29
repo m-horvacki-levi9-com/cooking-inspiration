@@ -17,21 +17,21 @@ public sealed class CookpadRecipeSearchGatewayTests
                 <html>
                   <body>
                     <main>
-                      <a href="/eng/recipes/1-creamy-pasta">
+                      <a href="/eng/recipes/11111">
                         <article>
                           <img src="https://images/1.jpg" alt="Creamy Pasta" />
                           <h2>Creamy Pasta</h2>
                           <p>Rich and simple.</p>
                         </article>
                       </a>
-                      <a href="/eng/recipes/2-tomato-soup">
+                      <a href="/eng/recipes/22222">
                         <article>
                           <img data-src="https://images/2.jpg" alt="Tomato Soup" />
                           <h3>Tomato Soup</h3>
                           <p>Comfort in a bowl.</p>
                         </article>
                       </a>
-                      <a href="/eng/recipes/3-invalid">
+                      <a href="/eng/recipes/33333">
                         <article>
                           <p>Missing title</p>
                         </article>
@@ -53,9 +53,95 @@ public sealed class CookpadRecipeSearchGatewayTests
         result.Recipes.Should().HaveCount(2);
         result.Recipes.Should().BeEquivalentTo(
         [
-            new CookpadRecipeCandidate("Creamy Pasta", "https://cookpad.com/eng/recipes/1-creamy-pasta", "https://images/1.jpg", "Rich and simple."),
-            new CookpadRecipeCandidate("Tomato Soup", "https://cookpad.com/eng/recipes/2-tomato-soup", "https://images/2.jpg", "Comfort in a bowl.")
+            new CookpadRecipeCandidate("Creamy Pasta", "https://cookpad.com/eng/recipes/11111", "https://images/1.jpg", "Rich and simple."),
+            new CookpadRecipeCandidate("Tomato Soup", "https://cookpad.com/eng/recipes/22222", "https://images/2.jpg", "Comfort in a bowl.")
         ]);
+    }
+
+    [Fact]
+    public async Task SearchAsync_WhenResponseContainsBookmarkProfileUrls_FiltersThemOut()
+    {
+        using var httpClient = new HttpClient(new StubHttpMessageHandler(_ => new HttpResponseMessage(HttpStatusCode.OK)
+        {
+            Content = new StringContent(
+                """
+                <html>
+                  <body>
+                    <main>
+                      <a href="/us/me/recipes/25374380/bookmark_folders">
+                        <article>
+                          <img src="https://images/bm.jpg" alt="Bookmark Recipe" />
+                          <h2>Bookmark Recipe</h2>
+                          <p>Should be filtered.</p>
+                        </article>
+                      </a>
+                      <a href="/us/recipes/99999">
+                        <article>
+                          <img src="https://images/valid.jpg" alt="Valid Recipe" />
+                          <h2>Valid Recipe</h2>
+                          <p>Should be included.</p>
+                        </article>
+                      </a>
+                    </main>
+                  </body>
+                </html>
+                """)
+        }))
+        {
+            BaseAddress = new Uri("https://cookpad.com")
+        };
+
+        var gateway = new CookpadRecipeSearchGateway(httpClient);
+
+        var result = await gateway.SearchAsync("pasta", CancellationToken.None);
+
+        result.IsSuccess.Should().BeTrue();
+        result.Recipes.Should().HaveCount(1);
+        result.Recipes.Single().Title.Should().Be("Valid Recipe");
+        result.Recipes.Single().CookpadUrl.Should().Be("https://cookpad.com/us/recipes/99999");
+    }
+
+    [Fact]
+    public async Task SearchAsync_WhenRecipeUrlHasExtraSegmentsAfterRecipeId_FiltersItOut()
+    {
+        using var httpClient = new HttpClient(new StubHttpMessageHandler(_ => new HttpResponseMessage(HttpStatusCode.OK)
+        {
+            Content = new StringContent(
+                """
+                <html>
+                  <body>
+                    <main>
+                      <a href="/eng/recipes/12345/steps">
+                        <article>
+                          <img src="https://images/s.jpg" alt="Steps Recipe" />
+                          <h2>Steps Recipe</h2>
+                          <p>Extra segment after ID.</p>
+                        </article>
+                      </a>
+                      <a href="/eng/recipes/67890">
+                        <article>
+                          <img src="https://images/ok.jpg" alt="Clean Recipe" />
+                          <h2>Clean Recipe</h2>
+                          <p>No extra segments.</p>
+                        </article>
+                      </a>
+                    </main>
+                  </body>
+                </html>
+                """)
+        }))
+        {
+            BaseAddress = new Uri("https://cookpad.com")
+        };
+
+        var gateway = new CookpadRecipeSearchGateway(httpClient);
+
+        var result = await gateway.SearchAsync("pasta", CancellationToken.None);
+
+        result.IsSuccess.Should().BeTrue();
+        result.Recipes.Should().HaveCount(1);
+        result.Recipes.Single().Title.Should().Be("Clean Recipe");
+        result.Recipes.Single().CookpadUrl.Should().Be("https://cookpad.com/eng/recipes/67890");
     }
 
     [Fact]
