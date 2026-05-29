@@ -69,11 +69,7 @@ public sealed partial class CookpadRecipeSearchGateway(HttpClient httpClient) : 
     private static CookpadRecipeCandidate? MapRecipe(HtmlNode node)
     {
         var href = node.GetAttributeValue("href", string.Empty).Trim();
-        var path = Uri.TryCreate(href, UriKind.Absolute, out var parsedUri)
-            ? parsedUri.AbsolutePath
-            : href;
-
-        if (!RecipePathRegex().IsMatch(path))
+        if (!href.Contains("/recipes/", StringComparison.OrdinalIgnoreCase))
         {
             return null;
         }
@@ -86,9 +82,15 @@ public sealed partial class CookpadRecipeSearchGateway(HttpClient httpClient) : 
 
         return new CookpadRecipeCandidate(
             title,
-            BuildCookpadUrl(href),
+            BuildCookpadUrl(NormalizeHref(href)),
             GetImageUrl(node),
             GetDescription(node));
+    }
+
+    private static string NormalizeHref(string href)
+    {
+        var normalized = MeSegmentRegex().Replace(href, "/");
+        return BookmarkFoldersSegmentRegex().Replace(normalized, string.Empty);
     }
 
     private static string BuildCookpadUrl(string href)
@@ -138,6 +140,9 @@ public sealed partial class CookpadRecipeSearchGateway(HttpClient httpClient) : 
     [GeneratedRegex(@"\s+")]
     private static partial Regex WhitespaceRegex();
 
-    [GeneratedRegex(@"^/[^/]+/recipes/\d+$", RegexOptions.IgnoreCase)]
-    private static partial Regex RecipePathRegex();
+    [GeneratedRegex(@"/me/", RegexOptions.IgnoreCase)]
+    private static partial Regex MeSegmentRegex();
+
+    [GeneratedRegex(@"/bookmark_folders(/.*)?$", RegexOptions.IgnoreCase)]
+    private static partial Regex BookmarkFoldersSegmentRegex();
 }

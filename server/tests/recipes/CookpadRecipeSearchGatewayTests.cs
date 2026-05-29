@@ -59,7 +59,7 @@ public sealed class CookpadRecipeSearchGatewayTests
     }
 
     [Fact]
-    public async Task SearchAsync_WhenResponseContainsBookmarkProfileUrls_FiltersThemOut()
+    public async Task SearchAsync_WhenResponseContainsBookmarkProfileUrls_NormalizesThemToCleanRecipeUrls()
     {
         using var httpClient = new HttpClient(new StubHttpMessageHandler(_ => new HttpResponseMessage(HttpStatusCode.OK)
         {
@@ -72,14 +72,14 @@ public sealed class CookpadRecipeSearchGatewayTests
                         <article>
                           <img src="https://images/bm.jpg" alt="Bookmark Recipe" />
                           <h2>Bookmark Recipe</h2>
-                          <p>Should be filtered.</p>
+                          <p>From bookmarks.</p>
                         </article>
                       </a>
                       <a href="/us/recipes/99999">
                         <article>
                           <img src="https://images/valid.jpg" alt="Valid Recipe" />
                           <h2>Valid Recipe</h2>
-                          <p>Should be included.</p>
+                          <p>Clean URL.</p>
                         </article>
                       </a>
                     </main>
@@ -96,13 +96,16 @@ public sealed class CookpadRecipeSearchGatewayTests
         var result = await gateway.SearchAsync("pasta", CancellationToken.None);
 
         result.IsSuccess.Should().BeTrue();
-        result.Recipes.Should().HaveCount(1);
-        result.Recipes.Single().Title.Should().Be("Valid Recipe");
-        result.Recipes.Single().CookpadUrl.Should().Be("https://cookpad.com/us/recipes/99999");
+        result.Recipes.Should().HaveCount(2);
+        result.Recipes.Should().BeEquivalentTo(
+        [
+            new CookpadRecipeCandidate("Bookmark Recipe", "https://cookpad.com/us/recipes/25374380", "https://images/bm.jpg", "From bookmarks."),
+            new CookpadRecipeCandidate("Valid Recipe", "https://cookpad.com/us/recipes/99999", "https://images/valid.jpg", "Clean URL.")
+        ]);
     }
 
     [Fact]
-    public async Task SearchAsync_WhenRecipeUrlHasExtraSegmentsAfterRecipeId_FiltersItOut()
+    public async Task SearchAsync_WhenRecipeUrlContainsMeSegmentOnly_NormalizesItToCleanRecipeUrl()
     {
         using var httpClient = new HttpClient(new StubHttpMessageHandler(_ => new HttpResponseMessage(HttpStatusCode.OK)
         {
@@ -111,18 +114,11 @@ public sealed class CookpadRecipeSearchGatewayTests
                 <html>
                   <body>
                     <main>
-                      <a href="/eng/recipes/12345/steps">
+                      <a href="/eng/me/recipes/55555">
                         <article>
-                          <img src="https://images/s.jpg" alt="Steps Recipe" />
-                          <h2>Steps Recipe</h2>
-                          <p>Extra segment after ID.</p>
-                        </article>
-                      </a>
-                      <a href="/eng/recipes/67890">
-                        <article>
-                          <img src="https://images/ok.jpg" alt="Clean Recipe" />
-                          <h2>Clean Recipe</h2>
-                          <p>No extra segments.</p>
+                          <img src="https://images/me.jpg" alt="Me Recipe" />
+                          <h2>Me Recipe</h2>
+                          <p>Profile recipe URL.</p>
                         </article>
                       </a>
                     </main>
@@ -140,8 +136,7 @@ public sealed class CookpadRecipeSearchGatewayTests
 
         result.IsSuccess.Should().BeTrue();
         result.Recipes.Should().HaveCount(1);
-        result.Recipes.Single().Title.Should().Be("Clean Recipe");
-        result.Recipes.Single().CookpadUrl.Should().Be("https://cookpad.com/eng/recipes/67890");
+        result.Recipes.Single().CookpadUrl.Should().Be("https://cookpad.com/eng/recipes/55555");
     }
 
     [Fact]
