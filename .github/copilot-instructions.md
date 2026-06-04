@@ -69,8 +69,8 @@ https://sites.google.com/getbring.com/bring-import-dev-guide/web-to-app-integrat
 Ubiquitous language Wiki page:
 https://github.com/m-horvacki-levi9-com/cooking-inspiration/wiki/Ubiquitous-language
 
-Azure Translator in Foundry Tools
-https://learn.microsoft.com/en-us/azure/ai-services/translator/text-translation/sdk-overview?tabs=csharp
+Architecture Decisions Record:
+https://github.com/m-horvacki-levi9-com/cooking-inspiration/wiki/Architecture-Decisions-Record
 
 Recipes providers:
 
