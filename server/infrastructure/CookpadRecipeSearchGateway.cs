@@ -84,7 +84,8 @@ public sealed partial class CookpadRecipeSearchGateway(HttpClient httpClient) : 
             title,
             BuildCookpadUrl(NormalizeHref(href)),
             GetImageUrl(node),
-            GetDescription(node));
+            GetDescription(node),
+            GetIngredients(node));
     }
 
     private static string NormalizeHref(string href)
@@ -122,6 +123,29 @@ public sealed partial class CookpadRecipeSearchGateway(HttpClient httpClient) : 
             CleanText(node.GetAttributeValue("title", null)));
     }
 
+    private static IReadOnlyList<string> GetIngredients(HtmlNode node)
+    {
+        var listIngredients = node.SelectNodes(".//ul/li")
+            ?.Select(ingredientNode => CleanText(ingredientNode.InnerText))
+            .OfType<string>()
+            .ToArray()
+            ?? [];
+
+        if (listIngredients.Length > 0)
+        {
+            return listIngredients;
+        }
+
+        return node.SelectSingleNode(".//*[@data-ingredients-redesign-target='ingredients']")
+            ?.DescendantsAndSelf()
+            .Where(ingredientNode => ingredientNode.NodeType == HtmlNodeType.Text)
+            .Select(ingredientNode => CleanText(ingredientNode.InnerText))
+            .OfType<string>()
+            .SelectMany(SplitIngredientSegments)
+            .ToArray()
+            ?? [];
+    }
+
     private static string? FirstNonEmpty(params string?[] values)
     {
         return values.FirstOrDefault(value => !string.IsNullOrWhiteSpace(value));
@@ -139,6 +163,17 @@ public sealed partial class CookpadRecipeSearchGateway(HttpClient httpClient) : 
 
     [GeneratedRegex(@"\s+")]
     private static partial Regex WhitespaceRegex();
+
+    private static IEnumerable<string> SplitIngredientSegments(string value)
+    {
+        return IngredientSeparatorRegex()
+            .Split(value)
+            .Select(CleanText)
+            .OfType<string>();
+    }
+
+    [GeneratedRegex(@"\s*[•·●▪]\s*")]
+    private static partial Regex IngredientSeparatorRegex();
 
     [GeneratedRegex(@"/me/", RegexOptions.IgnoreCase)]
     private static partial Regex MeSegmentRegex();

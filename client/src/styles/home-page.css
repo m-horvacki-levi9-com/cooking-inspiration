@@ -146,6 +146,31 @@
   color: #cbd5e1;
 }
 
+.recipe-card__details {
+  display: grid;
+  gap: 0.5rem;
+}
+
+.recipe-card__details-heading {
+  margin: 0;
+  font-size: 0.95rem;
+  color: #f8fafc;
+}
+
+.recipe-card__ingredients {
+  margin: 0;
+  padding-left: 1.25rem;
+  color: #cbd5e1;
+}
+
+.recipe-card__ingredients li + li {
+  margin-top: 0.35rem;
+}
+
+.recipe-card__ingredients-fallback {
+  margin: 0;
+}
+
 .recipe-card__link {
   display: inline-flex;
   align-items: center;

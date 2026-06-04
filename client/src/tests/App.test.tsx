@@ -68,24 +68,28 @@ describe('App', () => {
         cookpadUrl: 'https://cookpad.com/recipe-1',
         imageUrl: 'https://images.example.com/pasta.jpg',
         description: 'A quick pasta dinner with pesto and cream.',
+        ingredients: ['Pasta', 'Pesto', 'Cream'],
       },
       {
         title: 'Roasted Tomato Soup',
         cookpadUrl: 'https://cookpad.com/recipe-2',
         imageUrl: 'https://images.example.com/soup.jpg',
         description: 'Velvety tomato soup with roasted garlic.',
+        ingredients: ['Tomatoes', 'Garlic', 'Vegetable stock'],
       },
       {
         title: 'Lemon Herb Chicken',
         cookpadUrl: 'https://cookpad.com/recipe-3',
         imageUrl: 'https://images.example.com/chicken.jpg',
         description: 'Oven baked chicken with lemon and herbs.',
+        ingredients: [],
       },
       {
         title: 'Berry Oat Crumble',
         cookpadUrl: 'https://cookpad.com/recipe-4',
         imageUrl: null,
         description: null,
+        ingredients: [],
       },
     ];
     const deferredSearch = createDeferredPromise<RecipeSummary[]>();
@@ -107,7 +111,11 @@ describe('App', () => {
     expect(screen.getByRole('heading', { level: 2, name: 'Recipe ideas' })).toBeInTheDocument();
     expect(screen.getAllByRole('article')).toHaveLength(4);
     expect(screen.getAllByRole('link', { name: 'View recipe' })).toHaveLength(4);
+    expect(screen.getAllByText('Ingredients')).toHaveLength(4);
+    expect(screen.getByText('Pasta')).toBeInTheDocument();
+    expect(screen.getByText('Vegetable stock')).toBeInTheDocument();
     expect(screen.getByText('Description coming soon.')).toBeInTheDocument();
+    expect(screen.getAllByText('Ingredients coming soon.')).toHaveLength(2);
   });
 
   it('shows an explicit no-results state when the backend returns no recipes', async () => {

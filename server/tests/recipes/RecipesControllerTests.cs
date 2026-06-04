@@ -15,7 +15,7 @@ public sealed class RecipesControllerTests
         var searchService = new Mock<IRecipeSearchService>();
         var expectedResponse = new RecipeSearchResponse(
         [
-            new RecipeSearchRecipe("Creamy Pasta", "https://cookpad.com/eng/recipes/1", "https://images/1.jpg", "Rich and simple.")
+            new RecipeSearchRecipe("Creamy Pasta", "https://cookpad.com/eng/recipes/1", "https://images/1.jpg", "Rich and simple.", ["200g pasta", "1 cup cream"])
         ]);
 
         searchService

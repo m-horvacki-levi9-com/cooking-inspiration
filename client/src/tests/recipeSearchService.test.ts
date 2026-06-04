@@ -11,6 +11,7 @@ describe('searchRecipes', () => {
             cookpadUrl: 'https://cookpad.com/recipe-1',
             imageUrl: null,
             description: 'Simple one-pan chicken.',
+            ingredients: ['Chicken thighs', 'Paprika', 'Onion'],
           },
         ],
       },
@@ -35,6 +36,54 @@ describe('searchRecipes', () => {
         cookpadUrl: 'https://cookpad.com/recipe-1',
         imageUrl: null,
         description: 'Simple one-pan chicken.',
+        ingredients: ['Chicken thighs', 'Paprika', 'Onion'],
+      },
+    ]);
+  });
+
+  it('normalizes missing or null ingredient collections into empty arrays', async () => {
+    vi.spyOn(apiClient, 'get').mockResolvedValueOnce({
+      data: {
+        recipes: [
+          {
+            title: 'Tomato Toast',
+            cookpadUrl: 'https://cookpad.com/recipe-2',
+            imageUrl: null,
+            description: 'Quick toast with tomato.',
+            ingredients: null,
+          },
+          {
+            title: 'Butter Rice',
+            cookpadUrl: 'https://cookpad.com/recipe-3',
+            imageUrl: null,
+            description: 'Simple rice side.',
+          },
+        ],
+      },
+      status: 200,
+      statusText: 'OK',
+      headers: {},
+      config: {
+        headers: {},
+      },
+    });
+
+    const recipes = await searchRecipes('simple');
+
+    expect(recipes).toEqual([
+      {
+        title: 'Tomato Toast',
+        cookpadUrl: 'https://cookpad.com/recipe-2',
+        imageUrl: null,
+        description: 'Quick toast with tomato.',
+        ingredients: [],
+      },
+      {
+        title: 'Butter Rice',
+        cookpadUrl: 'https://cookpad.com/recipe-3',
+        imageUrl: null,
+        description: 'Simple rice side.',
+        ingredients: [],
       },
     ]);
   });

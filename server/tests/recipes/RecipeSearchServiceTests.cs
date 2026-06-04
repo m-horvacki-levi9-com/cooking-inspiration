@@ -46,11 +46,11 @@ public sealed class RecipeSearchServiceTests
             .Setup(searchGateway => searchGateway.SearchAsync("pasta", It.IsAny<CancellationToken>()))
             .ReturnsAsync(CookpadRecipeSearchResult.Success(
             [
-                new CookpadRecipeCandidate("Recipe 1", "https://cookpad.com/eng/recipes/1", "https://images/1.jpg", "Description 1"),
-                new CookpadRecipeCandidate("Recipe 2", "https://cookpad.com/eng/recipes/2", "https://images/2.jpg", "Description 2"),
-                new CookpadRecipeCandidate("Recipe 3", "https://cookpad.com/eng/recipes/3", "https://images/3.jpg", "Description 3"),
-                new CookpadRecipeCandidate("Recipe 4", "https://cookpad.com/eng/recipes/4", "https://images/4.jpg", "Description 4"),
-                new CookpadRecipeCandidate("Recipe 5", "https://cookpad.com/eng/recipes/5", "https://images/5.jpg", "Description 5")
+                new CookpadRecipeCandidate("Recipe 1", "https://cookpad.com/eng/recipes/1", "https://images/1.jpg", "Description 1", ["Ingredient 1"]),
+                new CookpadRecipeCandidate("Recipe 2", "https://cookpad.com/eng/recipes/2", "https://images/2.jpg", "Description 2", ["Ingredient 2"]),
+                new CookpadRecipeCandidate("Recipe 3", "https://cookpad.com/eng/recipes/3", "https://images/3.jpg", "Description 3", ["Ingredient 3"]),
+                new CookpadRecipeCandidate("Recipe 4", "https://cookpad.com/eng/recipes/4", "https://images/4.jpg", "Description 4", ["Ingredient 4"]),
+                new CookpadRecipeCandidate("Recipe 5", "https://cookpad.com/eng/recipes/5", "https://images/5.jpg", "Description 5", ["Ingredient 5"])
             ]));
 
         var service = new RecipeSearchService(gateway.Object, new SequenceRandomValueProvider(50, 10, 40, 20, 30));
@@ -61,6 +61,7 @@ public sealed class RecipeSearchServiceTests
         result.Response.Should().NotBeNull();
         result.Response!.Recipes.Should().HaveCount(4);
         result.Response.Recipes.Select(recipe => recipe.Title).Should().ContainInOrder("Recipe 2", "Recipe 4", "Recipe 5", "Recipe 3");
+        result.Response.Recipes.Select(recipe => recipe.Ingredients.Single()).Should().ContainInOrder("Ingredient 2", "Ingredient 4", "Ingredient 5", "Ingredient 3");
     }
 
     [Fact]
@@ -71,8 +72,8 @@ public sealed class RecipeSearchServiceTests
             .Setup(searchGateway => searchGateway.SearchAsync("soup", It.IsAny<CancellationToken>()))
             .ReturnsAsync(CookpadRecipeSearchResult.Success(
             [
-                new CookpadRecipeCandidate("Recipe 1", "https://cookpad.com/eng/recipes/1", null, null),
-                new CookpadRecipeCandidate("Recipe 2", "https://cookpad.com/eng/recipes/2", "https://images/2.jpg", "Description 2")
+                new CookpadRecipeCandidate("Recipe 1", "https://cookpad.com/eng/recipes/1", null, null, []),
+                new CookpadRecipeCandidate("Recipe 2", "https://cookpad.com/eng/recipes/2", "https://images/2.jpg", "Description 2", ["Ingredient 2"])
             ]));
 
         var service = new RecipeSearchService(gateway.Object, new SequenceRandomValueProvider(10, 20));
@@ -85,6 +86,9 @@ public sealed class RecipeSearchServiceTests
         result.Response.Recipes.Select(recipe => recipe.CookpadUrl)
             .Should()
             .Equal("https://cookpad.com/eng/recipes/1", "https://cookpad.com/eng/recipes/2");
+        result.Response.Recipes.Select(recipe => recipe.Ingredients)
+            .Should()
+            .BeEquivalentTo(new[] { Array.Empty<string>(), ["Ingredient 2"] }, options => options.WithStrictOrdering());
     }
 
     [Fact]
