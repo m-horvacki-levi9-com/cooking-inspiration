@@ -5,10 +5,11 @@ export type RecipeSummary = {
   cookpadUrl: string;
   imageUrl: string | null;
   description: string | null;
+  ingredients: string[];
 };
 
 type RecipeSearchResponse = {
-  recipes: RecipeSummary[];
+  recipes: Array<Omit<RecipeSummary, 'ingredients'> & { ingredients?: string[] | null }>;
 };
 
 export async function searchRecipes(keyword: string): Promise<RecipeSummary[]> {
@@ -18,5 +19,8 @@ export async function searchRecipes(keyword: string): Promise<RecipeSummary[]> {
     },
   });
 
-  return response.data.recipes;
+  return response.data.recipes.map((recipe) => ({
+    ...recipe,
+    ingredients: Array.isArray(recipe.ingredients) ? recipe.ingredients : [],
+  }));
 }

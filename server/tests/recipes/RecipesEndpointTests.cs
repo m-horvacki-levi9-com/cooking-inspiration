@@ -26,11 +26,11 @@ public sealed class RecipesEndpointTests : IClassFixture<WebApplicationFactory<P
         using var client = CreateClient(
             CookpadRecipeSearchResult.Success(
             [
-                new CookpadRecipeCandidate("Recipe 1", "https://cookpad.com/eng/recipes/1", "https://images/1.jpg", "Description 1"),
-                new CookpadRecipeCandidate("Recipe 2", "https://cookpad.com/eng/recipes/2", "https://images/2.jpg", "Description 2"),
-                new CookpadRecipeCandidate("Recipe 3", "https://cookpad.com/eng/recipes/3", null, null),
-                new CookpadRecipeCandidate("Recipe 4", "https://cookpad.com/eng/recipes/4", "https://images/4.jpg", "Description 4"),
-                new CookpadRecipeCandidate("Recipe 5", "https://cookpad.com/eng/recipes/5", "https://images/5.jpg", "Description 5")
+                new CookpadRecipeCandidate("Recipe 1", "https://cookpad.com/eng/recipes/1", "https://images/1.jpg", "Description 1", ["Ingredient 1"]),
+                new CookpadRecipeCandidate("Recipe 2", "https://cookpad.com/eng/recipes/2", "https://images/2.jpg", "Description 2", ["Ingredient 2"]),
+                new CookpadRecipeCandidate("Recipe 3", "https://cookpad.com/eng/recipes/3", null, null, []),
+                new CookpadRecipeCandidate("Recipe 4", "https://cookpad.com/eng/recipes/4", "https://images/4.jpg", "Description 4", ["Ingredient 4"]),
+                new CookpadRecipeCandidate("Recipe 5", "https://cookpad.com/eng/recipes/5", "https://images/5.jpg", "Description 5", ["Ingredient 5"])
             ]),
             new SequenceRandomValueProvider(50, 10, 40, 20, 30));
 
@@ -40,6 +40,9 @@ public sealed class RecipesEndpointTests : IClassFixture<WebApplicationFactory<P
         var payload = await response.Content.ReadFromJsonAsync<RecipeSearchResponse>();
         payload.Should().NotBeNull();
         payload!.Recipes.Select(recipe => recipe.Title).Should().ContainInOrder("Recipe 2", "Recipe 4", "Recipe 5", "Recipe 3");
+        payload.Recipes.Select(recipe => recipe.Ingredients)
+            .Should()
+            .BeEquivalentTo(new[] { ["Ingredient 2"], ["Ingredient 4"], ["Ingredient 5"], Array.Empty<string>() }, options => options.WithStrictOrdering());
     }
 
     [Fact]

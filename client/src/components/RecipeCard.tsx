@@ -5,6 +5,9 @@ type RecipeCardProps = {
 };
 
 function RecipeCard({ recipe }: RecipeCardProps) {
+  const ingredients = recipe.ingredients ?? [];
+  const hasIngredients = ingredients.length > 0;
+
   return (
     <article className="recipe-card">
       {recipe.imageUrl ? (
@@ -17,6 +20,18 @@ function RecipeCard({ recipe }: RecipeCardProps) {
       <div className="recipe-card__content">
         <h3>{recipe.title}</h3>
         <p>{recipe.description ?? 'Description coming soon.'}</p>
+        <div className="recipe-card__details">
+          <h4 className="recipe-card__details-heading">Ingredients</h4>
+          {hasIngredients ? (
+            <ul className="recipe-card__ingredients">
+              {ingredients.map((ingredient, index) => (
+                <li key={`${recipe.cookpadUrl}-ingredient-${index}`}>{ingredient}</li>
+              ))}
+            </ul>
+          ) : (
+            <p className="recipe-card__ingredients-fallback">Ingredients coming soon.</p>
+          )}
+        </div>
         <a
           className="recipe-card__link"
           href={recipe.cookpadUrl}
