@@ -1,3 +1,5 @@
+import { useEffect, useRef } from 'react';
+
 import type { RecipeSummary } from '../services/recipeSearchService';
 
 type RecipeCardProps = {
@@ -7,6 +9,22 @@ type RecipeCardProps = {
 function RecipeCard({ recipe }: RecipeCardProps) {
   const ingredients = recipe.ingredients ?? [];
   const hasIngredients = ingredients.length > 0;
+  const bringButtonRef = useRef<HTMLDivElement | null>(null);
+
+  useEffect(() => {
+    const bringButtonElement = bringButtonRef.current;
+    const bringImportWidget = window.bringwidgets?.import;
+
+    if (!recipe.cookpadUrl || !bringButtonElement || !bringImportWidget?.render) {
+      return;
+    }
+
+    bringImportWidget.render(bringButtonElement, {
+      url: recipe.cookpadUrl,
+      language: 'en',
+      theme: 'light',
+    });
+  }, [recipe.cookpadUrl]);
 
   return (
     <article className="recipe-card">
@@ -32,14 +50,30 @@ function RecipeCard({ recipe }: RecipeCardProps) {
             <p className="recipe-card__ingredients-fallback">Ingredients coming soon.</p>
           )}
         </div>
-        <a
-          className="recipe-card__link"
-          href={recipe.cookpadUrl}
-          target="_blank"
-          rel="noreferrer"
-        >
-          View recipe
-        </a>
+        <div className="recipe-card__actions">
+          <a
+            className="recipe-card__link"
+            href={recipe.cookpadUrl}
+            target="_blank"
+            rel="noreferrer"
+          >
+            View recipe
+          </a>
+          {recipe.cookpadUrl ? (
+            <div className="recipe-card__bring-slot">
+              <div ref={bringButtonRef}>
+                <a
+                  className="recipe-card__bring-link"
+                  href="https://www.getbring.com/en/home"
+                  rel="noreferrer"
+                  target="_blank"
+                >
+                  Import to Bring!
+                </a>
+              </div>
+            </div>
+          ) : null}
+        </div>
       </div>
     </article>
   );
