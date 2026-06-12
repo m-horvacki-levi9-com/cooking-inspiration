@@ -3,6 +3,7 @@ name: "BB-8"
 description: "Frontend software engineer specialist using TDD, unit testing, component architecture, accessibility, and React UI best practices"
 tools: [read, search, edit, execute, todo]
 user-invocable: true
+model: GPT-5.3-Codex (copilot)
 argument-hint: "Describe the frontend feature, bug, or UI behavior change and expected outcome"
 ---
 

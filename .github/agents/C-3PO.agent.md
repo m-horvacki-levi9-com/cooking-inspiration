@@ -4,6 +4,7 @@ description: "Delivery manager for refinement: creates tickets, enforces user st
 tools: [read, search, edit, todo, agent]
 agents: [Huyang]
 user-invocable: true
+model: GPT-5.4 (copilot)
 argument-hint: "Provide ticket draft, business intent, constraints, and stakeholders for refinement"
 ---
 

@@ -4,6 +4,7 @@ description: "Project architect agent for ticket planning, cross-layer design de
 tools: [read, search, edit, execute, todo, agent, web]
 agents: [BB-8, R2D2]
 user-invocable: true
+model: GPT-5.4 (copilot)
 argument-hint: "Provide ticket context, constraints, priorities, and expected outcomes for architecture planning"
 ---
 

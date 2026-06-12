@@ -4,10 +4,6 @@ This is a single page application built to support cooking enthusiasts in variou
 
 It is using a Bring! integration to allow users to easily add ingredients to their shopping list.
 
-### Localization
-
-The website is localized to chosen language, using Azure Translator.
-
 ## Tech stack in use
 
 ### Backend
