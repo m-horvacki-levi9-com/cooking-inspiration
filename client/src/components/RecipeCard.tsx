@@ -13,17 +13,45 @@ function RecipeCard({ recipe }: RecipeCardProps) {
 
   useEffect(() => {
     const bringButtonElement = bringButtonRef.current;
-    const bringImportWidget = window.bringwidgets?.import;
+    const bringScript = document.querySelector<HTMLScriptElement>(
+      'script[src="https://platform.getbring.com/widgets/import.js"]',
+    );
+    let widgetRendered = false;
 
-    if (!recipe.cookpadUrl || !bringButtonElement || !bringImportWidget?.render) {
+    if (!recipe.cookpadUrl || !bringButtonElement) {
       return;
     }
 
-    bringImportWidget.render(bringButtonElement, {
-      url: recipe.cookpadUrl,
-      language: 'en',
-      theme: 'light',
-    });
+    const renderBringWidget = () => {
+      if (widgetRendered) {
+        return;
+      }
+
+      const bringImportWidget = window.bringwidgets?.import;
+
+      if (!bringImportWidget?.render) {
+        return;
+      }
+
+      bringImportWidget.render(bringButtonElement, {
+        url: recipe.cookpadUrl,
+        language: 'en',
+        theme: 'light',
+      });
+      widgetRendered = true;
+    };
+
+    renderBringWidget();
+
+    if (!bringScript || widgetRendered) {
+      return;
+    }
+
+    bringScript.addEventListener('load', renderBringWidget);
+
+    return () => {
+      bringScript.removeEventListener('load', renderBringWidget);
+    };
   }, [recipe.cookpadUrl]);
 
   return (

@@ -83,6 +83,34 @@ describe('RecipeCard', () => {
     expect(screen.getByRole('link', { name: 'Import to Bring!' })).toBeInTheDocument();
   });
 
+  it('renders the Bring! widget when the script loads after initial render', () => {
+    window.bringwidgets = undefined;
+    const bringScript = document.createElement('script');
+    bringScript.src = 'https://platform.getbring.com/widgets/import.js';
+    document.head.appendChild(bringScript);
+
+    render(<RecipeCard recipe={baseRecipe} />);
+
+    expect(renderBringWidget).not.toHaveBeenCalled();
+    expect(screen.getByRole('link', { name: 'Import to Bring!' })).toBeInTheDocument();
+
+    window.bringwidgets = {
+      import: {
+        render: renderBringWidget,
+      },
+    };
+    bringScript.dispatchEvent(new Event('load'));
+
+    expect(renderBringWidget).toHaveBeenCalledTimes(1);
+    expect(renderBringWidget).toHaveBeenCalledWith(expect.any(HTMLDivElement), {
+      url: 'https://cookpad.com/recipe-1',
+      language: 'en',
+      theme: 'light',
+    });
+
+    bringScript.remove();
+  });
+
   it('falls back to placeholder text when no image is provided', () => {
     const recipeNoImage: RecipeSummary = { ...baseRecipe, imageUrl: null };
 
