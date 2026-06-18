@@ -71,9 +71,17 @@ const theme = createTheme({
         },
         input: {
           color: '#f8fafc',
+          caretColor: '#f8fafc',
           '&::placeholder': {
             color: '#94a3b8',
             opacity: 1,
+          },
+          '&:-webkit-autofill, &:-webkit-autofill:hover, &:-webkit-autofill:focus': {
+            borderRadius: '1rem',
+            caretColor: '#f8fafc',
+            WebkitBoxShadow: '0 0 0 100px rgba(15, 23, 42, 0.72) inset',
+            WebkitTextFillColor: '#f8fafc',
+            transition: 'background-color 5000s ease-in-out 0s',
           },
         },
       },
