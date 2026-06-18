@@ -42,19 +42,20 @@ function HomePage() {
   const trimmedKeyword = keyword.trim();
   const isSearchDisabled = trimmedKeyword.length === 0 || searchStatus === 'loading';
 
-  async function handleSubmit(event: FormEvent<HTMLFormElement>) {
-    event.preventDefault();
+  async function performSearch(nextKeyword: string) {
+    const normalizedKeyword = nextKeyword.trim();
 
-    if (isSearchDisabled) {
+    if (normalizedKeyword.length === 0 || searchStatus === 'loading') {
       return;
     }
 
+    setKeyword(normalizedKeyword);
     setSearchStatus('loading');
-    setSubmittedKeyword(trimmedKeyword);
+    setSubmittedKeyword(normalizedKeyword);
     setRecipes([]);
 
     try {
-      const foundRecipes = await searchRecipes(trimmedKeyword);
+      const foundRecipes = await searchRecipes(normalizedKeyword);
 
       setRecipes(foundRecipes);
       setSearchStatus(foundRecipes.length > 0 ? 'success' : 'empty');
@@ -63,85 +64,82 @@ function HomePage() {
     }
   }
 
+  function handleSubmit(event: FormEvent<HTMLFormElement>) {
+    event.preventDefault();
+    void performSearch(keyword);
+  }
+
   return (
     <section className="home-page" aria-labelledby="recipe-search-heading">
-      <Paper sx={{ ...glassSx, p: 3, ...fadeSlideIn }}>
-        <Typography
-          id="recipe-search-heading"
-          variant="h2"
-          sx={{ mb: 1.5, fontSize: 'clamp(1.5rem, 3vw, 2rem)' }}
-        >
-          Find a recipe to cook tonight
-        </Typography>
-        <Typography sx={{ color: 'text.secondary' }}>
-          Search by ingredient, dish, or craving to see up to four Cookpad recipe ideas.
-        </Typography>
-      </Paper>
-
-      <Paper
-        sx={{
-          ...glassSx,
-          p: 3,
-          ...fadeSlideIn,
-          animationDelay: '0.1s',
-          opacity: 0,
-          '@media (prefers-reduced-motion: reduce)': { animation: 'none', opacity: 1 },
-        }}
-      >
+      <Box className="home-page__hero">
         <Box
           component="form"
+          className="home-page__search"
           onSubmit={handleSubmit}
           sx={{
+            ...glassSx,
             display: 'grid',
             gap: 1.5,
-            '@media (min-width: 40rem)': {
-              gridTemplateColumns: 'minmax(0, 1fr) auto',
-            },
+            p: 3,
+            ...fadeSlideIn,
           }}
         >
-          <TextField
-            id="recipe-search-keyword"
-            label="Search recipes by keyword"
-            name="keyword"
-            value={keyword}
-            onChange={(event) => setKeyword(event.target.value)}
-            disabled={searchStatus === 'loading'}
-            fullWidth
-            slotProps={{
-              htmlInput: {
-                placeholder: 'Try pasta, soup, chicken, or dessert',
-              },
-            }}
-          />
-          <Button
-            type="submit"
-            variant="contained"
-            disabled={isSearchDisabled}
-            disableElevation
+          <Typography id="recipe-search-heading" component="h1" className="home-page__sr-only">
+            Search Cookpad recipes
+          </Typography>
+          <Box
             sx={{
-              minHeight: '3.5rem',
-              px: 3,
-              fontWeight: 700,
-              background: 'linear-gradient(135deg, #c084fc 0%, #f0abfc 100%)',
-              color: '#020617',
-              transition: 'transform 0.2s ease, opacity 0.2s ease',
-              whiteSpace: 'nowrap',
-              '&:hover:not(:disabled)': {
-                background: 'linear-gradient(135deg, #c084fc 0%, #f0abfc 100%)',
-                transform: 'translateY(-1px)',
-                boxShadow: 'none',
-              },
-              '&.Mui-disabled': {
-                opacity: 0.65,
-                color: '#020617',
-                background: 'linear-gradient(135deg, #c084fc 0%, #f0abfc 100%)',
+              display: 'grid',
+              gap: 1.5,
+              '@media (min-width: 40rem)': {
+                gridTemplateColumns: 'minmax(0, 1fr) auto',
               },
             }}
           >
-            {searchStatus === 'loading' ? 'Searching\u2026' : 'Search'}
-          </Button>
+            <TextField
+              id="recipe-search-keyword"
+              label="What would you like to eat for the weekend?"
+              name="keyword"
+              value={keyword}
+              onChange={(event) => setKeyword(event.target.value)}
+              disabled={searchStatus === 'loading'}
+              fullWidth
+              slotProps={{
+                htmlInput: {
+                  placeholder: 'Try pasta, soup, chicken, or dessert',
+                },
+              }}
+            />
+            <Button
+              type="submit"
+              variant="contained"
+              disabled={isSearchDisabled}
+              disableElevation
+              sx={{
+                minHeight: '3.5rem',
+                px: 3,
+                fontWeight: 700,
+                background: 'linear-gradient(135deg, #c084fc 0%, #f0abfc 100%)',
+                color: '#020617',
+                transition: 'transform 0.2s ease, opacity 0.2s ease',
+                whiteSpace: 'nowrap',
+                '&:hover:not(:disabled)': {
+                  background: 'linear-gradient(135deg, #c084fc 0%, #f0abfc 100%)',
+                  transform: 'translateY(-1px)',
+                  boxShadow: 'none',
+                },
+                '&.Mui-disabled': {
+                  opacity: 0.65,
+                  color: '#020617',
+                  background: 'linear-gradient(135deg, #c084fc 0%, #f0abfc 100%)',
+                },
+              }}
+            >
+              {searchStatus === 'loading' ? 'Searching\u2026' : 'Search'}
+            </Button>
+          </Box>
         </Box>
-      </Paper>
+      </Box>
 
       {searchStatus === 'loading' ? (
         <Paper sx={{ ...glassSx, px: 3, py: 2, ...fadeSlideIn }}>
@@ -180,8 +178,8 @@ function HomePage() {
           <div className="home-page__results-header">
             <h2 id="recipe-results-heading">Recipe ideas</h2>
             <p>
-              Showing {recipes.length} match{recipes.length === 1 ? '' : 'es'} for &ldquo;
-              {submittedKeyword}&rdquo;.
+              Showing {recipes.length} match{recipes.length === 1 ? '' : 'es'} for{' '}
+              <span className="home-page__keyword">&ldquo;{submittedKeyword}&rdquo;</span>.
             </p>
           </div>
           <div className="home-page__grid">

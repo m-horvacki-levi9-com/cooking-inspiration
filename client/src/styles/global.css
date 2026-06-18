@@ -9,6 +9,11 @@
   -moz-osx-font-smoothing: grayscale;
 }
 
+body,
+#root {
+  min-height: 100vh;
+}
+
 * {
   box-sizing: border-box;
 }

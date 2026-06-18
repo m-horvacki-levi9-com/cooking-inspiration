@@ -40,10 +40,10 @@ describe('App', () => {
   it('renders the recipe search experience', () => {
     render(<App />);
 
-    expect(screen.getByRole('heading', { level: 1, name: 'Cooking Inspiration' })).toBeInTheDocument();
-    expect(screen.getByText('Search Cookpad recipes by keyword and discover your next meal idea.')).toBeInTheDocument();
-    expect(screen.getByRole('heading', { level: 2, name: 'Find a recipe to cook tonight' })).toBeInTheDocument();
-    expect(screen.getByRole('textbox', { name: 'Search recipes by keyword' })).toBeInTheDocument();
+    expect(screen.getByRole('heading', { level: 1, name: 'Search Cookpad recipes' })).toBeInTheDocument();
+    expect(
+      screen.getByRole('textbox', { name: 'What would you like to eat for the weekend?' }),
+    ).toBeInTheDocument();
     expect(screen.getByRole('button', { name: 'Search' })).toBeDisabled();
   });
 
@@ -52,7 +52,9 @@ describe('App', () => {
 
     render(<App />);
 
-    const searchInput = screen.getByRole('textbox', { name: 'Search recipes by keyword' });
+    const searchInput = screen.getByRole('textbox', {
+      name: 'What would you like to eat for the weekend?',
+    });
 
     await user.type(searchInput, '   ');
 
@@ -98,7 +100,10 @@ describe('App', () => {
 
     render(<App />);
 
-    await user.type(screen.getByRole('textbox', { name: 'Search recipes by keyword' }), '  pasta  ');
+    await user.type(
+      screen.getByRole('textbox', { name: 'What would you like to eat for the weekend?' }),
+      '  pasta  ',
+    );
     await user.click(screen.getByRole('button', { name: 'Search' }));
 
     expect(mockedSearchRecipes).toHaveBeenCalledWith('pasta');
@@ -125,7 +130,10 @@ describe('App', () => {
 
     render(<App />);
 
-    await user.type(screen.getByRole('textbox', { name: 'Search recipes by keyword' }), 'pumpkin');
+    await user.type(
+      screen.getByRole('textbox', { name: 'What would you like to eat for the weekend?' }),
+      'pumpkin',
+    );
     await user.click(screen.getByRole('button', { name: 'Search' }));
 
     expect(await screen.findByText('No recipes found for “pumpkin”. Try another keyword.')).toBeInTheDocument();
@@ -139,7 +147,10 @@ describe('App', () => {
 
     render(<App />);
 
-    await user.type(screen.getByRole('textbox', { name: 'Search recipes by keyword' }), 'soup');
+    await user.type(
+      screen.getByRole('textbox', { name: 'What would you like to eat for the weekend?' }),
+      'soup',
+    );
     await user.click(screen.getByRole('button', { name: 'Search' }));
 
     expect(
