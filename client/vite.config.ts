@@ -1,5 +1,11 @@
+import { resolve } from 'path';
+import { fileURLToPath } from 'url';
+
 import react from '@vitejs/plugin-react';
-import { defineConfig, loadEnv } from 'vite';
+import { loadEnv } from 'vite';
+import { defineConfig } from 'vitest/config';
+
+const __dirname = fileURLToPath(new URL('.', import.meta.url));
 
 export default defineConfig(({ mode }) => {
   const env = loadEnv(mode, process.cwd(), '');
@@ -7,6 +13,14 @@ export default defineConfig(({ mode }) => {
 
   return {
     plugins: [react()],
+    resolve: {
+      alias: {
+        'react-transition-group/TransitionGroupContext': resolve(
+          __dirname,
+          'node_modules/react-transition-group/cjs/TransitionGroupContext.js',
+        ),
+      },
+    },
     server: {
       proxy: {
         '/api': {
@@ -27,6 +41,11 @@ export default defineConfig(({ mode }) => {
       setupFiles: './vitest.setup.ts',
       css: true,
       exclude: ['e2e/**', 'node_modules/**'],
+      server: {
+        deps: {
+          inline: [/@mui\/material/, /@emotion\//, /react-transition-group/],
+        },
+      },
     },
   };
 });
