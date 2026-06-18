@@ -39,7 +39,7 @@ It is using a Bring! integration to allow users to easily add ingredients to the
 
 ### Coding guidelines
 
-- maximum cyclomatic complexity of 7 for any method
+- maximum cyclomatic complexity of 7 for any method or function
 
 ## Project structure
 
