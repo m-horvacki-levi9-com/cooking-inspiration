@@ -1,4 +1,4 @@
-import { render, screen } from '@testing-library/react';
+import { render, screen, waitFor } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 
 import App from '../App';
@@ -62,7 +62,7 @@ describe('App', () => {
     expect(mockedSearchRecipes).not.toHaveBeenCalled();
   });
 
-  it('shows a loading state and then renders returned recipes', async () => {
+  it('shows a loading state and then renders returned recipes as a list', async () => {
     const user = userEvent.setup();
     const expectedRecipes: RecipeSummary[] = [
       {
@@ -115,12 +115,118 @@ describe('App', () => {
     expect(await screen.findByRole('heading', { level: 3, name: 'Creamy Pesto Pasta' })).toBeInTheDocument();
     expect(screen.getByRole('heading', { level: 2, name: 'Recipe ideas' })).toBeInTheDocument();
     expect(screen.getAllByRole('article')).toHaveLength(4);
-    expect(screen.getAllByRole('link', { name: 'View recipe' })).toHaveLength(4);
-    expect(screen.getAllByText('Ingredients')).toHaveLength(4);
-    expect(screen.getByText('Pasta')).toBeInTheDocument();
-    expect(screen.getByText('Vegetable stock')).toBeInTheDocument();
+    expect(screen.getAllByRole('button', { name: 'View details' })).toHaveLength(4);
+    expect(screen.getAllByRole('link', { name: 'Import to Bring!' })).toHaveLength(4);
+    expect(screen.getByText('A quick pasta dinner with pesto and cream.')).toBeInTheDocument();
     expect(screen.getByText('Description coming soon.')).toBeInTheDocument();
-    expect(screen.getAllByText('Ingredients coming soon.')).toHaveLength(2);
+    expect(screen.queryByRole('dialog')).not.toBeInTheDocument();
+  });
+
+  it('opens the recipe detail modal when "View details" is clicked', async () => {
+    const user = userEvent.setup();
+    const recipes: RecipeSummary[] = [
+      {
+        title: 'Creamy Pesto Pasta',
+        cookpadUrl: 'https://cookpad.com/recipe-1',
+        imageUrl: 'https://images.example.com/pasta.jpg',
+        description: 'A quick pasta dinner with pesto and cream.',
+        ingredients: ['Pasta', 'Pesto', 'Cream'],
+      },
+    ];
+
+    mockedSearchRecipes.mockResolvedValueOnce(recipes);
+
+    render(<App />);
+
+    await user.type(
+      screen.getByRole('textbox', { name: 'What would you like to eat for the weekend?' }),
+      'pasta',
+    );
+    await user.click(screen.getByRole('button', { name: 'Search' }));
+
+    await screen.findByRole('heading', { level: 3, name: 'Creamy Pesto Pasta' });
+
+    await user.click(screen.getByRole('button', { name: 'View details' }));
+
+    expect(screen.getByRole('dialog')).toBeInTheDocument();
+    expect(screen.getByText('Pasta')).toBeInTheDocument();
+    expect(screen.getByText('Pesto')).toBeInTheDocument();
+    expect(screen.getByText('We will soon add method steps here')).toBeInTheDocument();
+
+    await user.click(screen.getByRole('button', { name: 'Close' }));
+
+    await waitFor(() => {
+      expect(screen.queryByRole('dialog')).not.toBeInTheDocument();
+    });
+  });
+
+  it('restores focus to the triggering "View details" button when the modal closes', async () => {
+    const user = userEvent.setup();
+    const recipes: RecipeSummary[] = [
+      {
+        title: 'Creamy Pesto Pasta',
+        cookpadUrl: 'https://cookpad.com/recipe-1',
+        imageUrl: 'https://images.example.com/pasta.jpg',
+        description: 'A quick pasta dinner with pesto and cream.',
+        ingredients: ['Pasta', 'Pesto', 'Cream'],
+      },
+    ];
+
+    mockedSearchRecipes.mockResolvedValueOnce(recipes);
+
+    render(<App />);
+
+    await user.type(
+      screen.getByRole('textbox', { name: 'What would you like to eat for the weekend?' }),
+      'pasta',
+    );
+    await user.click(screen.getByRole('button', { name: 'Search' }));
+
+    const viewDetailsButton = await screen.findByRole('button', { name: 'View details' });
+
+    await user.click(viewDetailsButton);
+    await screen.findByRole('dialog');
+
+    await user.keyboard('{Escape}');
+
+    await waitFor(() => {
+      expect(screen.queryByRole('dialog')).not.toBeInTheDocument();
+    });
+    expect(viewDetailsButton).toHaveFocus();
+  });
+
+  it('Import to Bring! remains available for each recipe in the results list', async () => {
+    const user = userEvent.setup();
+    const recipes: RecipeSummary[] = [
+      {
+        title: 'Creamy Pesto Pasta',
+        cookpadUrl: 'https://cookpad.com/recipe-1',
+        imageUrl: null,
+        description: null,
+        ingredients: [],
+      },
+      {
+        title: 'Roasted Tomato Soup',
+        cookpadUrl: 'https://cookpad.com/recipe-2',
+        imageUrl: null,
+        description: null,
+        ingredients: [],
+      },
+    ];
+
+    mockedSearchRecipes.mockResolvedValueOnce(recipes);
+
+    render(<App />);
+
+    await user.type(
+      screen.getByRole('textbox', { name: 'What would you like to eat for the weekend?' }),
+      'pasta',
+    );
+    await user.click(screen.getByRole('button', { name: 'Search' }));
+
+    await screen.findByRole('heading', { level: 3, name: 'Creamy Pesto Pasta' });
+
+    expect(screen.getAllByRole('link', { name: 'Import to Bring!' })).toHaveLength(2);
   });
 
   it('shows an explicit no-results state when the backend returns no recipes', async () => {

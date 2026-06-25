@@ -7,7 +7,8 @@ import Paper from '@mui/material/Paper';
 import TextField from '@mui/material/TextField';
 import Typography from '@mui/material/Typography';
 
-import RecipeCard from '../components/RecipeCard';
+import RecipeDetailModal from '../components/RecipeDetailModal';
+import RecipeListItem from '../components/RecipeListItem';
 import { searchRecipes, type RecipeSummary } from '../services/recipeSearchService';
 import '../styles/home-page.css';
 
@@ -38,6 +39,8 @@ function HomePage() {
   const [recipes, setRecipes] = useState<RecipeSummary[]>([]);
   const [searchStatus, setSearchStatus] = useState<SearchStatus>('idle');
   const [submittedKeyword, setSubmittedKeyword] = useState('');
+  const [selectedRecipe, setSelectedRecipe] = useState<RecipeSummary | null>(null);
+  const [isRecipeDetailOpen, setIsRecipeDetailOpen] = useState(false);
 
   const trimmedKeyword = keyword.trim();
   const isSearchDisabled = trimmedKeyword.length === 0 || searchStatus === 'loading';
@@ -50,6 +53,8 @@ function HomePage() {
     }
 
     setKeyword(normalizedKeyword);
+    setSelectedRecipe(null);
+    setIsRecipeDetailOpen(false);
     setSearchStatus('loading');
     setSubmittedKeyword(normalizedKeyword);
     setRecipes([]);
@@ -67,6 +72,15 @@ function HomePage() {
   function handleSubmit(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
     void performSearch(keyword);
+  }
+
+  function handleViewDetails(recipe: RecipeSummary): void {
+    setSelectedRecipe(recipe);
+    setIsRecipeDetailOpen(true);
+  }
+
+  function handleCloseModal(): void {
+    setIsRecipeDetailOpen(false);
   }
 
   return (
@@ -182,13 +196,27 @@ function HomePage() {
               <span className="home-page__keyword">&ldquo;{submittedKeyword}&rdquo;</span>.
             </p>
           </div>
-          <div className="home-page__grid">
-            {recipes.map((recipe) => (
-              <RecipeCard key={recipe.cookpadUrl} recipe={recipe} />
+          <Box
+            component="ul"
+            sx={{ m: 0, p: '0 1.5rem 1.5rem', listStyle: 'none', display: 'grid', gap: 1.5 }}
+          >
+            {recipes.map((recipe, index) => (
+              <li key={`${recipe.cookpadUrl || recipe.title}-${index}`}>
+                <RecipeListItem
+                  recipe={recipe}
+                  onViewDetails={() => handleViewDetails(recipe)}
+                />
+              </li>
             ))}
-          </div>
+          </Box>
         </section>
       ) : null}
+
+      <RecipeDetailModal
+        recipe={selectedRecipe}
+        open={isRecipeDetailOpen}
+        onClose={handleCloseModal}
+      />
     </section>
   );
 }
