@@ -3,17 +3,14 @@ import Dialog from '@mui/material/Dialog';
 import DialogContent from '@mui/material/DialogContent';
 import DialogTitle from '@mui/material/DialogTitle';
 import IconButton from '@mui/material/IconButton';
-import Link from '@mui/material/Link';
 import Typography from '@mui/material/Typography';
 
 import type { RecipeDetails } from '../services/recipeDetailsService';
 import type { RecipeSearchListItem } from '../services/recipeSearchService';
-import { appOwnedBringButtonSx } from '../styles/bringButtonStyles';
 
 type RecipeDetailModalProps = {
   recipe: RecipeSearchListItem | null;
   recipeDetails: RecipeDetails | null;
-  detailsStatus: 'idle' | 'loading' | 'success' | 'error';
   open: boolean;
   onClose: () => void;
 };
@@ -41,7 +38,6 @@ const sectionCardSx = {
 function RecipeDetailModal({
   recipe,
   recipeDetails,
-  detailsStatus,
   open,
   onClose,
 }: RecipeDetailModalProps) {
@@ -61,7 +57,6 @@ function RecipeDetailModal({
   const description = resolvedRecipe.description ?? DESCRIPTION_FALLBACK;
   const methodSteps = recipeDetails?.methodSteps ?? [];
   const hasMethodSteps = methodSteps.length > 0;
-  const isLoading = detailsStatus === 'loading';
 
   return (
     <Dialog
@@ -136,123 +131,95 @@ function RecipeDetailModal({
       </DialogTitle>
 
       <DialogContent sx={{ p: 0 }}>
-        {resolvedRecipe.imageUrl ? (
-          <Box
-            component="img"
-            src={resolvedRecipe.imageUrl}
-            alt={resolvedRecipe.title}
-            sx={{
-              width: '100%',
-              maxHeight: 240,
-              objectFit: 'cover',
-              display: 'block',
-              background: 'var(--app-surface-muted)',
-            }}
-          />
-        ) : null}
-
-        <Box sx={{ p: 2.5, display: 'grid', gap: 3 }}>
-          <Typography
-            variant="body1"
-            sx={{ color: 'var(--app-text-secondary)', lineHeight: 1.75, m: 0 }}
-          >
-            {description}
-          </Typography>
-
-          <Box sx={sectionCardSx}>
-            <Typography
-              component="h3"
-              variant="subtitle1"
-              sx={{ fontWeight: 700, color: 'var(--app-text-primary)', mb: 1.5, m: 0 }}
-            >
-              Ingredients
-            </Typography>
-
-            {isLoading ? (
-              <Typography variant="body2" sx={{ color: 'var(--app-text-secondary)', mt: 1 }}>
-                Loading ingredients&hellip;
-              </Typography>
-            ) : hasIngredients ? (
-              <Box
-                component="ul"
-                sx={{
-                  m: 0,
-                  mt: 1,
-                  pl: 2.5,
-                  color: 'var(--app-text-secondary)',
-                  display: 'grid',
-                  gap: 0.5,
-                }}
-              >
-                {ingredients.map((ingredient, index) => (
-                  <li key={`${resolvedRecipe.cookpadUrl}-ingredient-${index}`}>{ingredient}</li>
-                ))}
-              </Box>
-            ) : (
-              <Typography variant="body2" sx={{ color: 'var(--app-text-secondary)', mt: 1 }}>
-                Ingredients coming soon.
-              </Typography>
-            )}
-          </Box>
-
-          <Box sx={sectionCardSx}>
-            <Typography
-              component="h3"
-              variant="subtitle1"
-              sx={{ fontWeight: 700, color: 'var(--app-text-primary)', m: 0 }}
-            >
-              Method
-            </Typography>
-
-            {isLoading ? (
-              <Typography variant="body2" sx={{ color: 'var(--app-text-secondary)', mt: 1 }}>
-                Loading method steps&hellip;
-              </Typography>
-            ) : hasMethodSteps ? (
-              <Box
-                component="ol"
-                aria-label="Method steps"
-                sx={{
-                  m: 0,
-                  mt: 1,
-                  pl: 2.5,
-                  color: 'var(--app-text-secondary)',
-                  display: 'grid',
-                  gap: 0.5,
-                }}
-              >
-                {methodSteps.map((step, index) => (
-                  <li key={`${resolvedRecipe.cookpadUrl}-step-${index}`}>{step}</li>
-                ))}
-              </Box>
-            ) : (
-              <Typography variant="body2" sx={{ color: 'var(--app-text-secondary)', mt: 1 }}>
-                {METHOD_FALLBACK}
-              </Typography>
-            )}
-          </Box>
-
-          {resolvedRecipe.cookpadUrl ? (
-            <Box sx={{ display: 'flex' }}>
-              <Link
-                href={resolvedRecipe.cookpadUrl}
-                target="_blank"
-                rel="noreferrer"
-                underline="none"
-                sx={{
-                  ...appOwnedBringButtonSx,
-                  display: 'inline-flex',
-                  alignItems: 'center',
-                  justifyContent: 'center',
-                  minHeight: '2.5rem',
-                  px: 2,
-                  fontWeight: 700,
-                }}
-              >
-                View recipe
-              </Link>
-            </Box>
+        <Box>
+          {resolvedRecipe.imageUrl ? (
+            <Box
+              component="img"
+              src={resolvedRecipe.imageUrl}
+              alt={resolvedRecipe.title}
+              sx={{
+                width: '100%',
+                maxHeight: 240,
+                objectFit: 'cover',
+                display: 'block',
+                background: 'var(--app-surface-muted)',
+              }}
+            />
           ) : null}
+
+          <Box sx={{ p: 2.5, display: 'grid', gap: 3 }}>
+            <Typography
+              variant="body1"
+              sx={{ color: 'var(--app-text-secondary)', lineHeight: 1.75, m: 0 }}
+            >
+              {description}
+            </Typography>
+
+            <Box sx={sectionCardSx}>
+              <Typography
+                component="h3"
+                variant="subtitle1"
+                sx={{ fontWeight: 700, color: 'var(--app-text-primary)', mb: 1.5, m: 0 }}
+              >
+                Ingredients
+              </Typography>
+
+              {hasIngredients ? (
+                <Box
+                  component="ul"
+                  sx={{
+                    m: 0,
+                    mt: 1,
+                    pl: 2.5,
+                    color: 'var(--app-text-secondary)',
+                    display: 'grid',
+                    gap: 0.5,
+                  }}
+                >
+                  {ingredients.map((ingredient, index) => (
+                    <li key={`${resolvedRecipe.cookpadUrl}-ingredient-${index}`}>{ingredient}</li>
+                  ))}
+                </Box>
+              ) : (
+                <Typography variant="body2" sx={{ color: 'var(--app-text-secondary)', mt: 1 }}>
+                  Ingredients coming soon.
+                </Typography>
+              )}
+            </Box>
+
+            <Box sx={sectionCardSx}>
+              <Typography
+                component="h3"
+                variant="subtitle1"
+                sx={{ fontWeight: 700, color: 'var(--app-text-primary)', m: 0 }}
+              >
+                Method
+              </Typography>
+
+              {hasMethodSteps ? (
+                <Box
+                  component="ol"
+                  aria-label="Method steps"
+                  sx={{
+                    m: 0,
+                    mt: 1,
+                    pl: 2.5,
+                    color: 'var(--app-text-secondary)',
+                    display: 'grid',
+                    gap: 0.5,
+                  }}
+                >
+                  {methodSteps.map((step, index) => (
+                    <li key={`${resolvedRecipe.cookpadUrl}-step-${index}`}>{step}</li>
+                  ))}
+                </Box>
+              ) : (
+                <Typography variant="body2" sx={{ color: 'var(--app-text-secondary)', mt: 1 }}>
+                  {METHOD_FALLBACK}
+                </Typography>
+              )}
+            </Box>
+          </Box>
         </Box>
       </DialogContent>
     </Dialog>

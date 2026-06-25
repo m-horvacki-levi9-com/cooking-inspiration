@@ -14,8 +14,8 @@ type RecipeListItemProps = {
 };
 
 const thumbnailSx = {
-  width: { xs: 80, sm: 96 },
-  height: { xs: 80, sm: 96 },
+  width: { xs: 72, sm: 84 },
+  height: { xs: 72, sm: 84 },
   flexShrink: 0,
   borderRadius: '0.75rem',
   objectFit: 'cover' as const,
@@ -29,8 +29,8 @@ const bringLinkSx = {
   display: 'inline-flex',
   alignItems: 'center',
   justifyContent: 'center',
-  minHeight: '2.5rem',
-  px: 2,
+  minHeight: '2.25rem',
+  px: 1.5,
   textDecoration: 'none',
   fontWeight: 700,
 } as const;
@@ -86,13 +86,13 @@ function RecipeListItem({ recipe, onViewDetails }: RecipeListItemProps) {
       sx={{
         display: 'grid',
         gridTemplateColumns: {
-          xs: '5rem minmax(0, 1fr)',
-          sm: '6rem minmax(0, 1fr)',
+          xs: '4.5rem minmax(0, 1fr)',
+          sm: '5.25rem minmax(0, 1fr)',
         },
-        gap: 2,
+        gap: 1.5,
         alignItems: 'start',
-        p: 2,
-        minHeight: { xs: '9rem', sm: '9.5rem' },
+        p: 1.5,
+        minHeight: { xs: '7.75rem', sm: '8.25rem' },
         border: '1px solid var(--app-border)',
         borderRadius: '1.5rem',
         backgroundColor: 'rgba(255, 255, 255, 0.94)',
@@ -126,7 +126,7 @@ function RecipeListItem({ recipe, onViewDetails }: RecipeListItemProps) {
         </Box>
       )}
 
-      <Box sx={{ flex: 1, minWidth: 0, display: 'grid', gap: 0.75 }}>
+      <Box sx={{ flex: 1, minWidth: 0, display: 'grid', gap: 0.5 }}>
         <Typography
           component="h3"
           variant="body1"
@@ -134,7 +134,7 @@ function RecipeListItem({ recipe, onViewDetails }: RecipeListItemProps) {
             fontWeight: 700,
             lineHeight: 1.3,
             m: 0,
-            minHeight: '2.6rem',
+            minHeight: '2.3rem',
             color: 'var(--app-text-primary)',
             display: '-webkit-box',
             overflow: 'hidden',
@@ -150,8 +150,8 @@ function RecipeListItem({ recipe, onViewDetails }: RecipeListItemProps) {
           sx={{
             color: 'var(--app-text-secondary)',
             m: 0,
-            minHeight: '3rem',
-            lineHeight: 1.5,
+            minHeight: '2.5rem',
+            lineHeight: 1.4,
             display: '-webkit-box',
             overflow: 'hidden',
             WebkitBoxOrient: 'vertical',
@@ -161,7 +161,7 @@ function RecipeListItem({ recipe, onViewDetails }: RecipeListItemProps) {
           {descriptionPreview}
         </Typography>
 
-        <Box sx={{ display: 'flex', gap: 1, flexWrap: 'wrap', mt: 0.5 }}>
+        <Box sx={{ display: 'flex', gap: 0.75, flexWrap: 'wrap', mt: 0.25 }}>
           <Button
             variant="contained"
             size="small"
@@ -169,8 +169,8 @@ function RecipeListItem({ recipe, onViewDetails }: RecipeListItemProps) {
             disableElevation
             sx={{
               ...appOwnedBringButtonSx,
-              minHeight: '2.5rem',
-              px: 2,
+              minHeight: '2.25rem',
+              px: 1.5,
             }}
           >
             View details

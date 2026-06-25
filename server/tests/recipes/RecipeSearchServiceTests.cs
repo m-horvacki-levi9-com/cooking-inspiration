@@ -105,6 +105,51 @@ public sealed class RecipeSearchServiceTests
         result.Response!.Recipes.Should().BeEmpty();
     }
 
+    [Fact]
+    public async Task SearchAsync_WhenSearchCardsMissMetadata_EnrichesSelectedRecipesFromDetails()
+    {
+        var gateway = new Mock<ICookpadRecipeSearchGateway>();
+        gateway
+            .Setup(searchGateway => searchGateway.SearchAsync("pasta", It.IsAny<CancellationToken>()))
+            .ReturnsAsync(CookpadRecipeSearchResult.Success(
+            [
+                new CookpadRecipeCandidate("11111", "Recipe 11111", "https://cookpad.com/eng/recipes/11111", null, null),
+                new CookpadRecipeCandidate("22222", "Recipe 22222", "https://cookpad.com/eng/recipes/22222", null, null)
+            ]));
+        gateway
+            .Setup(searchGateway => searchGateway.GetByRecipeIdAsync("11111", It.IsAny<CancellationToken>()))
+            .ReturnsAsync(CookpadRecipeDetailsResult.Success(new CookpadRecipeDetails(
+                "11111",
+                "Creamy Pasta",
+                "https://cookpad.com/eng/recipes/11111",
+                "https://images/1.jpg",
+                "Rich and simple.",
+                ["ignored ingredient"],
+                ["ignored step"])));
+        gateway
+            .Setup(searchGateway => searchGateway.GetByRecipeIdAsync("22222", It.IsAny<CancellationToken>()))
+            .ReturnsAsync(CookpadRecipeDetailsResult.Success(new CookpadRecipeDetails(
+                "22222",
+                "Tomato Soup",
+                "https://cookpad.com/eng/recipes/22222",
+                "https://images/2.jpg",
+                "Comfort in a bowl.",
+                ["ignored ingredient"],
+                ["ignored step"])));
+
+        var service = new RecipeSearchService(gateway.Object, new SequenceRandomValueProvider(10, 20));
+
+        var result = await service.SearchAsync("pasta", CancellationToken.None);
+
+        result.Status.Should().Be(RecipeSearchStatus.Success);
+        result.Response.Should().NotBeNull();
+        result.Response!.Recipes.Should().BeEquivalentTo(
+        [
+            new RecipeSearchRecipe("11111", "Creamy Pasta", "https://cookpad.com/eng/recipes/11111", "https://images/1.jpg", "Rich and simple."),
+            new RecipeSearchRecipe("22222", "Tomato Soup", "https://cookpad.com/eng/recipes/22222", "https://images/2.jpg", "Comfort in a bowl.")
+        ], options => options.WithStrictOrdering());
+    }
+
     private sealed class SequenceRandomValueProvider(params int[] values) : IRandomValueProvider
     {
         private readonly Queue<int> _values = new(values);

@@ -2,7 +2,9 @@ import type { FormEvent } from 'react';
 import { useState } from 'react';
 
 import Box from '@mui/material/Box';
+import Backdrop from '@mui/material/Backdrop';
 import Button from '@mui/material/Button';
+import CircularProgress from '@mui/material/CircularProgress';
 import Paper from '@mui/material/Paper';
 import TextField from '@mui/material/TextField';
 import Typography from '@mui/material/Typography';
@@ -52,6 +54,7 @@ function HomePage() {
 
   const trimmedKeyword = keyword.trim();
   const isSearchDisabled = trimmedKeyword.length === 0 || searchStatus === 'loading';
+  const isDetailsLoading = detailsStatus === 'loading';
 
   async function performSearch(nextKeyword: string) {
     const normalizedKeyword = nextKeyword.trim();
@@ -88,15 +91,17 @@ function HomePage() {
     setSelectedRecipe(recipe);
     setSelectedRecipeDetails(null);
     setDetailsStatus('loading');
-    setIsRecipeDetailOpen(true);
+    setIsRecipeDetailOpen(false);
 
     void (async () => {
       try {
         const details = await getRecipeDetails(recipe.recipeId);
         setSelectedRecipeDetails(details);
         setDetailsStatus('success');
+        setIsRecipeDetailOpen(true);
       } catch {
         setDetailsStatus('error');
+        setIsRecipeDetailOpen(true);
       }
     })();
   }
@@ -228,10 +233,40 @@ function HomePage() {
         </section>
       ) : null}
 
+      <Backdrop
+        open={isDetailsLoading}
+        sx={{
+          color: '#fff',
+          zIndex: (theme) => theme.zIndex.modal + 1,
+          backgroundColor: 'rgba(31, 45, 24, 0.42)',
+          backdropFilter: 'blur(6px)',
+        }}
+      >
+        <Box
+          role="status"
+          aria-live="polite"
+          sx={{
+            display: 'grid',
+            justifyItems: 'center',
+            gap: 2,
+            px: 3,
+            py: 2.5,
+            borderRadius: '1.5rem',
+            border: '1px solid rgba(231, 245, 198, 0.28)',
+            backgroundColor: 'rgba(22, 36, 17, 0.78)',
+            boxShadow: '0 20px 60px rgba(17, 24, 13, 0.3)',
+          }}
+        >
+          <CircularProgress color="inherit" thickness={4.5} size={42} />
+          <Typography sx={{ fontWeight: 700, letterSpacing: '0.01em' }}>
+            Loading recipe details…
+          </Typography>
+        </Box>
+      </Backdrop>
+
       <RecipeDetailModal
         recipe={selectedRecipe}
         recipeDetails={selectedRecipeDetails}
-        detailsStatus={detailsStatus}
         open={isRecipeDetailOpen}
         onClose={handleCloseModal}
       />

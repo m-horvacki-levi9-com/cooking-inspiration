@@ -100,6 +100,40 @@ describe('App', () => {
     expect(within(dialog).getByText('Finish with cream.')).toBeInTheDocument();
   });
 
+  it('shows a loading state before recipe details fade into view', async () => {
+    const user = userEvent.setup();
+    let resolveDetails: ((value: RecipeDetails) => void) | undefined;
+
+    mockedSearchRecipes.mockResolvedValueOnce([compactRecipe]);
+    mockedGetRecipeDetails.mockReturnValueOnce(
+      new Promise<RecipeDetails>((resolve) => {
+        resolveDetails = resolve;
+      }),
+    );
+
+    render(<App />);
+
+    await user.type(
+      screen.getByRole('textbox', { name: 'What would you like to eat for the weekend?' }),
+      'pasta',
+    );
+    await user.click(screen.getByRole('button', { name: 'Search' }));
+    await screen.findByRole('heading', { level: 3, name: 'Creamy Pesto Pasta' });
+
+    await user.click(screen.getByRole('button', { name: 'View details' }));
+
+    expect(screen.queryByRole('dialog')).not.toBeInTheDocument();
+    expect(screen.getByRole('status')).toHaveTextContent('Loading recipe details…');
+
+    resolveDetails?.(recipeDetails);
+
+    await waitFor(() => {
+      expect(screen.queryByRole('status')).not.toBeInTheDocument();
+    });
+    const dialog = await screen.findByRole('dialog');
+    expect(within(dialog).getByText('Boil pasta.')).toBeInTheDocument();
+  });
+
   it('shows graceful method fallback when details have no method steps', async () => {
     const user = userEvent.setup();
 
@@ -124,7 +158,7 @@ describe('App', () => {
     expect(within(dialog).getByText('Method steps are unavailable for this recipe.')).toBeInTheDocument();
   });
 
-  it('preserves Bring! affordance and uses canonical detail URL in expanded recipe actions', async () => {
+  it('preserves Bring! affordance without rendering a modal recipe action', async () => {
     const user = userEvent.setup();
 
     mockedSearchRecipes.mockResolvedValueOnce([compactRecipe]);
@@ -143,11 +177,7 @@ describe('App', () => {
 
     await user.click(screen.getByRole('button', { name: 'View details' }));
     const dialog = await screen.findByRole('dialog');
-    const viewRecipeLink = within(dialog).getByRole('link', { name: 'View recipe' });
-
-    expect(viewRecipeLink).toHaveAttribute('href', 'https://cookpad.com/eng/recipes/11111');
-    expect(viewRecipeLink).toHaveAttribute('target', '_blank');
-    expect(viewRecipeLink).toHaveAttribute('rel', 'noreferrer');
+    expect(within(dialog).queryByRole('link', { name: 'View recipe' })).not.toBeInTheDocument();
 
     await user.click(screen.getByRole('button', { name: 'Close' }));
     await waitFor(() => {

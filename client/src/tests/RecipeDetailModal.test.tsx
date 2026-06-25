@@ -27,12 +27,10 @@ const detailRecipe: RecipeDetails = {
 function ModalHarness({
   recipe,
   recipeDetails,
-  detailsStatus = 'success',
   startOpen = true,
 }: {
   recipe: RecipeSearchListItem | null;
   recipeDetails: RecipeDetails | null;
-  detailsStatus?: 'idle' | 'loading' | 'success' | 'error';
   startOpen?: boolean;
 }) {
   const [open, setOpen] = useState(startOpen);
@@ -43,7 +41,6 @@ function ModalHarness({
       <RecipeDetailModal
         recipe={recipe}
         recipeDetails={recipeDetails}
-        detailsStatus={detailsStatus}
         open={open}
         onClose={() => setOpen(false)}
       />
@@ -58,15 +55,8 @@ describe('RecipeDetailModal', () => {
     expect(screen.queryByRole('dialog')).not.toBeInTheDocument();
   });
 
-  it('shows loading messaging while details are being lazy-loaded', () => {
-    render(<ModalHarness recipe={compactRecipe} recipeDetails={null} detailsStatus="loading" />);
-
-    expect(screen.getByText('Loading ingredients…')).toBeInTheDocument();
-    expect(screen.getByText('Loading method steps…')).toBeInTheDocument();
-  });
-
   it('renders ingredients and ordered method steps when detail data is available', () => {
-    render(<ModalHarness recipe={compactRecipe} recipeDetails={detailRecipe} detailsStatus="success" />);
+    render(<ModalHarness recipe={compactRecipe} recipeDetails={detailRecipe} />);
 
     expect(screen.getByText('Pasta')).toBeInTheDocument();
     expect(screen.getByText('Pesto')).toBeInTheDocument();
@@ -80,25 +70,22 @@ describe('RecipeDetailModal', () => {
       <ModalHarness
         recipe={compactRecipe}
         recipeDetails={{ ...detailRecipe, methodSteps: [] }}
-        detailsStatus="success"
       />,
     );
 
     expect(screen.getByText('Method steps are unavailable for this recipe.')).toBeInTheDocument();
   });
 
-  it('uses canonical detail URL for the recipe action link', () => {
-    render(<ModalHarness recipe={compactRecipe} recipeDetails={detailRecipe} detailsStatus="success" />);
+  it('does not render a View recipe action', () => {
+    render(<ModalHarness recipe={compactRecipe} recipeDetails={detailRecipe} />);
 
-    const link = screen.getByRole('link', { name: 'View recipe' });
-
-    expect(link).toHaveAttribute('href', 'https://cookpad.com/eng/recipes/11111');
+    expect(screen.queryByRole('link', { name: 'View recipe' })).not.toBeInTheDocument();
   });
 
   it('closes the modal when the close button is clicked', async () => {
     const user = userEvent.setup();
 
-    render(<ModalHarness recipe={compactRecipe} recipeDetails={detailRecipe} detailsStatus="success" />);
+    render(<ModalHarness recipe={compactRecipe} recipeDetails={detailRecipe} />);
 
     await user.click(screen.getByRole('button', { name: 'Close' }));
 
