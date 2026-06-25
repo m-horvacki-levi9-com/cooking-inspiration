@@ -80,6 +80,29 @@ describe('RecipeListItem', () => {
     expect(screen.getByRole('button', { name: 'View details' })).toBeInTheDocument();
   });
 
+  it('uses live Bring button styling for app-owned recipe actions', () => {
+    render(<RecipeListItem recipe={baseRecipe} onViewDetails={vi.fn()} />);
+
+    const article = screen.getByRole('article');
+    const viewDetailsButton = screen.getByRole('button', { name: 'View details' });
+    const bringLink = screen.getByRole('link', { name: 'Import to Bring!' });
+
+    expect(getComputedStyle(article).backgroundColor).toBe('rgba(255, 255, 255, 0.94)');
+    expect(getComputedStyle(viewDetailsButton).backgroundColor).toBe('rgb(248, 248, 248)');
+    expect(getComputedStyle(viewDetailsButton).color).toBe('rgb(37, 48, 54)');
+    expect(getComputedStyle(viewDetailsButton).border).toBe('1px solid rgba(151, 151, 151, 0.1)');
+    expect(getComputedStyle(viewDetailsButton).borderRadius).toBe('4px');
+    expect(getComputedStyle(viewDetailsButton).boxShadow).toBe(
+      '0px 2px 2px 0px rgba(0, 0, 0, 0.2)',
+    );
+
+    expect(getComputedStyle(bringLink).backgroundColor).toBe('rgb(248, 248, 248)');
+    expect(getComputedStyle(bringLink).color).toBe('rgb(37, 48, 54)');
+    expect(getComputedStyle(bringLink).border).toBe('1px solid rgba(151, 151, 151, 0.1)');
+    expect(getComputedStyle(bringLink).borderRadius).toBe('4px');
+    expect(getComputedStyle(bringLink).boxShadow).toBe('0px 2px 2px 0px rgba(0, 0, 0, 0.2)');
+  });
+
   it('calls onViewDetails when the "View details" button is activated', async () => {
     const user = userEvent.setup();
     const onViewDetails = vi.fn();

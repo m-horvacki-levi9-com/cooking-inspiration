@@ -5,6 +5,7 @@ import Button from '@mui/material/Button';
 import Typography from '@mui/material/Typography';
 
 import type { RecipeSummary } from '../services/recipeSearchService';
+import { appOwnedBringButtonSx } from '../styles/bringButtonStyles';
 import { formatDescriptionPreview } from '../viewModels/recipeListItem';
 
 type RecipeListItemProps = {
@@ -20,24 +21,18 @@ const thumbnailSx = {
   objectFit: 'cover' as const,
   display: 'grid',
   placeItems: 'center',
-  background: 'linear-gradient(135deg, rgba(168, 85, 247, 0.35), rgba(59, 130, 246, 0.25))',
+  background: 'linear-gradient(135deg, rgba(184, 222, 109, 0.52), rgba(231, 245, 198, 0.88))',
 } as const;
 
 const bringLinkSx = {
+  ...appOwnedBringButtonSx,
   display: 'inline-flex',
   alignItems: 'center',
   justifyContent: 'center',
-  minHeight: '2.75rem',
+  minHeight: '2.5rem',
   px: 2,
-  borderRadius: '999px',
   textDecoration: 'none',
   fontWeight: 700,
-  color: '#020617',
-  background: 'linear-gradient(135deg, #c084fc 0%, #f0abfc 100%)',
-  '&:focus-visible': {
-    outline: '3px solid rgba(192, 132, 252, 0.6)',
-    outlineOffset: '2px',
-  },
 } as const;
 
 function RecipeListItem({ recipe, onViewDetails }: RecipeListItemProps) {
@@ -98,15 +93,17 @@ function RecipeListItem({ recipe, onViewDetails }: RecipeListItemProps) {
         alignItems: 'start',
         p: 2,
         minHeight: { xs: '9rem', sm: '9.5rem' },
-        border: '1px solid rgba(148, 163, 184, 0.18)',
-        borderRadius: '1.25rem',
-        background: 'rgba(30, 41, 59, 0.88)',
-        transition: 'border-color 0.2s ease',
+        border: '1px solid var(--app-border)',
+        borderRadius: '1.5rem',
+        backgroundColor: 'rgba(255, 255, 255, 0.94)',
+        boxShadow: 'var(--app-shadow-soft)',
+        transition: 'border-color 0.2s ease, box-shadow 0.2s ease',
         '@media (prefers-reduced-motion: reduce)': {
           transition: 'none',
         },
         '&:hover': {
-          borderColor: 'rgba(192, 132, 252, 0.35)',
+          borderColor: 'var(--app-border-strong)',
+          boxShadow: 'var(--app-shadow)',
         },
       }}
     >
@@ -122,7 +119,7 @@ function RecipeListItem({ recipe, onViewDetails }: RecipeListItemProps) {
           <Typography
             component="span"
             variant="caption"
-            sx={{ px: 1, textAlign: 'center', color: '#e2e8f0', fontWeight: 600 }}
+            sx={{ px: 1, textAlign: 'center', color: 'var(--app-text-secondary)', fontWeight: 600 }}
           >
             Image coming soon
           </Typography>
@@ -138,7 +135,7 @@ function RecipeListItem({ recipe, onViewDetails }: RecipeListItemProps) {
             lineHeight: 1.3,
             m: 0,
             minHeight: '2.6rem',
-            color: '#f8fafc',
+            color: 'var(--app-text-primary)',
             display: '-webkit-box',
             overflow: 'hidden',
             WebkitBoxOrient: 'vertical',
@@ -151,7 +148,7 @@ function RecipeListItem({ recipe, onViewDetails }: RecipeListItemProps) {
         <Typography
           variant="body2"
           sx={{
-            color: '#cbd5e1',
+            color: 'var(--app-text-secondary)',
             m: 0,
             minHeight: '3rem',
             lineHeight: 1.5,
@@ -166,20 +163,14 @@ function RecipeListItem({ recipe, onViewDetails }: RecipeListItemProps) {
 
         <Box sx={{ display: 'flex', gap: 1, flexWrap: 'wrap', mt: 0.5 }}>
           <Button
-            variant="outlined"
+            variant="contained"
             size="small"
             onClick={onViewDetails}
+            disableElevation
             sx={{
-              borderColor: 'rgba(192, 132, 252, 0.45)',
-              color: '#f8fafc',
-              borderRadius: '999px',
-              fontWeight: 700,
-              minHeight: '2.75rem',
+              ...appOwnedBringButtonSx,
+              minHeight: '2.5rem',
               px: 2,
-              '&:hover': {
-                borderColor: 'rgba(192, 132, 252, 0.7)',
-                background: 'rgba(192, 132, 252, 0.1)',
-              },
             }}
           >
             View details

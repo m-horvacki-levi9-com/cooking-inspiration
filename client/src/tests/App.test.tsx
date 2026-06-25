@@ -37,6 +37,14 @@ describe('App', () => {
     mockedSearchRecipes.mockReset();
   });
 
+  const bringInspiredRecipe: RecipeSummary = {
+    title: 'Creamy Pesto Pasta',
+    cookpadUrl: 'https://cookpad.com/recipe-1',
+    imageUrl: 'https://images.example.com/pasta.jpg',
+    description: 'A quick pasta dinner with pesto and cream.',
+    ingredients: ['Pasta', 'Pesto', 'Cream'],
+  };
+
   it('renders the recipe search experience', () => {
     render(<App />);
 
@@ -45,6 +53,47 @@ describe('App', () => {
       screen.getByRole('textbox', { name: 'What would you like to eat for the weekend?' }),
     ).toBeInTheDocument();
     expect(screen.getByRole('button', { name: 'Search' })).toBeDisabled();
+  });
+
+  it('uses a light shell and search button styling that matches the live Bring widget button', async () => {
+    const user = userEvent.setup();
+
+    mockedSearchRecipes.mockResolvedValueOnce([bringInspiredRecipe]);
+
+    render(<App />);
+
+    const appShell = screen.getByRole('main').parentElement;
+
+    expect(appShell).not.toBeNull();
+    expect(getComputedStyle(appShell!).backgroundColor).toBe('rgb(242, 247, 234)');
+
+    const searchInput = screen.getByRole('textbox', {
+      name: 'What would you like to eat for the weekend?',
+    });
+    const searchPanel = searchInput.closest('form');
+
+    expect(searchPanel).not.toBeNull();
+    expect(getComputedStyle(searchPanel!).backgroundColor).toBe('rgba(250, 252, 246, 0.94)');
+
+    await user.type(searchInput, 'pasta');
+
+    const searchButton = screen.getByRole('button', { name: 'Search' });
+
+    expect(getComputedStyle(searchButton).backgroundColor).toBe('rgb(248, 248, 248)');
+    expect(getComputedStyle(searchButton).color).toBe('rgb(37, 48, 54)');
+    expect(getComputedStyle(searchButton).border).toBe('1px solid rgba(151, 151, 151, 0.1)');
+    expect(getComputedStyle(searchButton).borderRadius).toBe('4px');
+    expect(getComputedStyle(searchButton).boxShadow).toBe(
+      '0px 2px 2px 0px rgba(0, 0, 0, 0.2)',
+    );
+
+    await user.click(searchButton);
+
+    const resultsHeading = await screen.findByRole('heading', { level: 2, name: 'Recipe ideas' });
+    const resultsSection = resultsHeading.closest('section');
+
+    expect(resultsSection).not.toBeNull();
+    expect(getComputedStyle(resultsSection!).backgroundColor).toBe('rgba(250, 252, 246, 0.94)');
   });
 
   it('prevents empty or whitespace-only searches', async () => {

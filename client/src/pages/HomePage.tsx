@@ -10,16 +10,20 @@ import Typography from '@mui/material/Typography';
 import RecipeDetailModal from '../components/RecipeDetailModal';
 import RecipeListItem from '../components/RecipeListItem';
 import { searchRecipes, type RecipeSummary } from '../services/recipeSearchService';
+import {
+  appOwnedBringButtonDisabledSx,
+  appOwnedBringButtonSx,
+} from '../styles/bringButtonStyles';
 import '../styles/home-page.css';
 
 type SearchStatus = 'idle' | 'loading' | 'success' | 'empty' | 'error';
 
-const glassSx = {
-  background: 'rgba(15, 23, 42, 0.72)',
-  border: '1px solid rgba(148, 163, 184, 0.2)',
-  borderRadius: '1.5rem',
-  boxShadow: '0 24px 48px rgba(15, 23, 42, 0.28)',
-  backdropFilter: 'blur(14px)',
+const panelSx = {
+  backgroundColor: 'rgba(250, 252, 246, 0.94)',
+  border: '1px solid var(--app-border)',
+  borderRadius: '1.75rem',
+  boxShadow: 'var(--app-shadow)',
+  backdropFilter: 'blur(16px)',
 } as const;
 
 const fadeSlideIn = {
@@ -91,7 +95,7 @@ function HomePage() {
           className="home-page__search"
           onSubmit={handleSubmit}
           sx={{
-            ...glassSx,
+            ...panelSx,
             display: 'grid',
             gap: 1.5,
             p: 3,
@@ -130,22 +134,16 @@ function HomePage() {
               disabled={isSearchDisabled}
               disableElevation
               sx={{
+                ...appOwnedBringButtonSx,
                 minHeight: '3.5rem',
                 px: 3,
                 fontWeight: 700,
-                background: 'linear-gradient(135deg, #c084fc 0%, #f0abfc 100%)',
-                color: '#020617',
-                transition: 'transform 0.2s ease, opacity 0.2s ease',
                 whiteSpace: 'nowrap',
                 '&:hover:not(:disabled)': {
-                  background: 'linear-gradient(135deg, #c084fc 0%, #f0abfc 100%)',
-                  transform: 'translateY(-1px)',
-                  boxShadow: 'none',
+                  ...appOwnedBringButtonSx['&:hover'],
                 },
                 '&.Mui-disabled': {
-                  opacity: 0.65,
-                  color: '#020617',
-                  background: 'linear-gradient(135deg, #c084fc 0%, #f0abfc 100%)',
+                  ...appOwnedBringButtonDisabledSx,
                 },
               }}
             >
@@ -156,7 +154,7 @@ function HomePage() {
       </Box>
 
       {searchStatus === 'loading' ? (
-        <Paper sx={{ ...glassSx, px: 3, py: 2, ...fadeSlideIn }}>
+        <Paper sx={{ ...panelSx, px: 3, py: 2, ...fadeSlideIn }}>
           <Typography role="status" sx={{ color: 'text.primary', fontWeight: 500 }}>
             Searching recipes for &ldquo;{submittedKeyword}&rdquo;&hellip;
           </Typography>
@@ -166,21 +164,21 @@ function HomePage() {
       {searchStatus === 'error' ? (
         <Paper
           sx={{
-            ...glassSx,
+            ...panelSx,
             px: 3,
             py: 2,
-            borderColor: 'rgba(248, 113, 113, 0.35)',
+            borderColor: 'rgba(200, 75, 49, 0.3)',
             ...fadeSlideIn,
           }}
         >
-          <Typography role="alert" sx={{ color: 'error.light', fontWeight: 500 }}>
+          <Typography role="alert" sx={{ color: 'error.main', fontWeight: 600 }}>
             We couldn&rsquo;t load recipes right now. Please try again in a moment.
           </Typography>
         </Paper>
       ) : null}
 
       {searchStatus === 'empty' ? (
-        <Paper sx={{ ...glassSx, px: 3, py: 2, ...fadeSlideIn }}>
+        <Paper sx={{ ...panelSx, px: 3, py: 2, ...fadeSlideIn }}>
           <Typography role="status" sx={{ color: 'text.primary', fontWeight: 500 }}>
             No recipes found for &ldquo;{submittedKeyword}&rdquo;. Try another keyword.
           </Typography>

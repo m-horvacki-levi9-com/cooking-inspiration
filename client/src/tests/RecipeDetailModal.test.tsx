@@ -44,6 +44,19 @@ describe('RecipeDetailModal', () => {
     expect(screen.getByRole('heading', { name: 'Creamy Pesto Pasta' })).toBeInTheDocument();
   });
 
+  it('uses a light modal surface and matching green accents for app-owned controls', () => {
+    render(<ModalHarness recipe={baseRecipe} />);
+
+    const dialog = screen.getByRole('dialog');
+    const dialogTitle = screen.getByRole('heading', { name: 'Creamy Pesto Pasta' }).parentElement;
+    const closeButton = screen.getByRole('button', { name: 'Close' });
+
+    expect(getComputedStyle(dialog).backgroundColor).toBe('rgb(255, 255, 255)');
+    expect(dialogTitle).not.toBeNull();
+    expect(getComputedStyle(dialogTitle!).borderBottomColor).toBe('rgba(127, 168, 73, 0.18)');
+    expect(getComputedStyle(closeButton).color).toBe('rgb(72, 96, 72)');
+  });
+
   it('renders the recipe image when imageUrl is available', () => {
     render(<ModalHarness recipe={baseRecipe} />);
 
