@@ -25,32 +25,36 @@
 }
 
 .home-page__results {
-  background: rgba(15, 23, 42, 0.72);
-  border: 1px solid rgba(148, 163, 184, 0.2);
-  border-radius: 1.5rem;
-  box-shadow: 0 24px 48px rgba(15, 23, 42, 0.28);
+  background-color: rgba(250, 252, 246, 0.94);
+  border: 1px solid var(--app-border);
+  border-radius: 1.75rem;
+  box-shadow: var(--app-shadow);
   backdrop-filter: blur(14px);
   overflow: hidden;
 }
 
 .home-page__keyword {
   font-weight: 700;
-  color: #f8fafc;
+  color: var(--app-text-primary);
 }
 
 .home-page__results-header {
   padding: 1.5rem;
+  background:
+    linear-gradient(180deg, rgba(231, 245, 198, 0.72) 0%, rgba(255, 255, 255, 0) 100%);
+  border-bottom: 1px solid rgba(127, 168, 73, 0.12);
 }
 
 .home-page__results-header h2 {
   margin: 0 0 0.75rem;
   font-size: clamp(1.5rem, 3vw, 2rem);
   font-weight: 700;
+  color: var(--app-text-primary);
 }
 
 .home-page__results-header p {
   margin: 0;
-  color: #cbd5e1;
+  color: var(--app-text-secondary);
 }
 
 .home-page__grid {

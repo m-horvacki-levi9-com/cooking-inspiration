@@ -1,27 +1,43 @@
 import { createTheme } from '@mui/material/styles';
 
+const paletteTokens = {
+  accent: '#b8de6d',
+  accentSoft: '#e7f5c6',
+  accentStrong: '#9dc94f',
+  accentContrast: '#1c2a15',
+  backgroundBase: '#f2f7ea',
+  border: 'rgba(127, 168, 73, 0.22)',
+  borderStrong: 'rgba(127, 168, 73, 0.38)',
+  surface: 'rgba(250, 252, 246, 0.94)',
+  surfaceStrong: 'rgba(255, 255, 255, 0.94)',
+  textMuted: '#637862',
+  textPrimary: '#1d2e1a',
+  textSecondary: '#486048',
+} as const;
+
 const theme = createTheme({
   palette: {
-    mode: 'dark',
+    mode: 'light',
     primary: {
-      main: '#c084fc',
-      light: '#f0abfc',
-      dark: '#a855f7',
-      contrastText: '#020617',
+      main: paletteTokens.accent,
+      light: paletteTokens.accentSoft,
+      dark: paletteTokens.accentStrong,
+      contrastText: paletteTokens.accentContrast,
     },
     background: {
-      default: '#0f172a',
-      paper: 'rgba(15, 23, 42, 0.72)',
+      default: paletteTokens.backgroundBase,
+      paper: paletteTokens.surface,
     },
     text: {
-      primary: '#f8fafc',
-      secondary: '#e2e8f0',
-      disabled: 'rgba(248, 250, 252, 0.42)',
+      primary: paletteTokens.textPrimary,
+      secondary: paletteTokens.textSecondary,
+      disabled: 'rgba(29, 46, 26, 0.42)',
     },
     error: {
-      main: '#f87171',
-      light: '#fecaca',
+      main: '#c84b31',
+      light: '#f6d0c9',
     },
+    divider: paletteTokens.border,
   },
   typography: {
     fontFamily:
@@ -40,7 +56,7 @@ const theme = createTheme({
     },
   },
   shape: {
-    borderRadius: 12,
+    borderRadius: 16,
   },
   components: {
     MuiPaper: {
@@ -53,13 +69,13 @@ const theme = createTheme({
     MuiOutlinedInput: {
       styleOverrides: {
         root: {
-          borderRadius: '1rem',
-          backgroundColor: 'rgba(15, 23, 42, 0.72)',
+          borderRadius: '1.125rem',
+          backgroundColor: paletteTokens.surfaceStrong,
           '&:hover .MuiOutlinedInput-notchedOutline': {
-            borderColor: 'rgba(148, 163, 184, 0.55)',
+            borderColor: paletteTokens.borderStrong,
           },
           '&.Mui-focused .MuiOutlinedInput-notchedOutline': {
-            borderColor: 'rgba(192, 132, 252, 0.75)',
+            borderColor: paletteTokens.accentStrong,
             borderWidth: '2px',
           },
           '&.Mui-disabled': {
@@ -67,20 +83,20 @@ const theme = createTheme({
           },
         },
         notchedOutline: {
-          borderColor: 'rgba(148, 163, 184, 0.28)',
+          borderColor: paletteTokens.border,
         },
         input: {
-          color: '#f8fafc',
-          caretColor: '#f8fafc',
+          color: paletteTokens.textPrimary,
+          caretColor: paletteTokens.textPrimary,
           '&::placeholder': {
-            color: '#94a3b8',
+            color: paletteTokens.textMuted,
             opacity: 1,
           },
           '&:-webkit-autofill, &:-webkit-autofill:hover, &:-webkit-autofill:focus': {
-            borderRadius: '1rem',
-            caretColor: '#f8fafc',
-            WebkitBoxShadow: '0 0 0 100px rgba(15, 23, 42, 0.72) inset',
-            WebkitTextFillColor: '#f8fafc',
+            borderRadius: '1.125rem',
+            caretColor: paletteTokens.textPrimary,
+            WebkitBoxShadow: '0 0 0 100px rgba(255, 255, 255, 0.94) inset',
+            WebkitTextFillColor: paletteTokens.textPrimary,
             transition: 'background-color 5000s ease-in-out 0s',
           },
         },
@@ -89,10 +105,10 @@ const theme = createTheme({
     MuiInputLabel: {
       styleOverrides: {
         root: {
-          color: '#cbd5e1',
+          color: paletteTokens.textSecondary,
           fontWeight: 600,
           '&.Mui-focused': {
-            color: '#e0aaff',
+            color: paletteTokens.textPrimary,
           },
         },
       },
@@ -102,7 +118,7 @@ const theme = createTheme({
         root: {
           textTransform: 'none',
           fontWeight: 700,
-          borderRadius: '1rem',
+          borderRadius: '999px',
           letterSpacing: 'normal',
         },
       },
