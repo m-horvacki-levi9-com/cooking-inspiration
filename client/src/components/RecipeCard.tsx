@@ -1,9 +1,9 @@
 import { useEffect, useRef } from 'react';
 
-import type { RecipeSummary } from '../services/recipeSearchService';
+import type { RecipeDetails } from '../services/recipeDetailsService';
 
 type RecipeCardProps = {
-  recipe: RecipeSummary;
+  recipe: RecipeDetails;
 };
 
 function RecipeCard({ recipe }: RecipeCardProps) {

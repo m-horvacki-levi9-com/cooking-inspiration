@@ -25,11 +25,11 @@ public sealed class RecipeSearchService(
             .OrderBy(_ => randomValueProvider.Next())
             .Take(MaximumRecipeCount)
             .Select(recipe => new RecipeSearchRecipe(
+                recipe.RecipeId,
                 recipe.Title,
                 recipe.CookpadUrl,
                 recipe.ImageUrl,
-                recipe.Description,
-                recipe.Ingredients))
+                recipe.Description))
             .ToArray();
 
         return RecipeSearchResult.Success(new RecipeSearchResponse(recipes));

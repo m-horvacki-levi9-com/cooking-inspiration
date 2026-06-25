@@ -2,16 +2,16 @@ import { apiClient } from '../services/apiClient';
 import { searchRecipes } from '../services/recipeSearchService';
 
 describe('searchRecipes', () => {
-  it('requests recipes from the backend with the expected keyword query parameter', async () => {
+  it('requests compact recipes from the backend with the expected keyword query parameter', async () => {
     const apiClientGetSpy = vi.spyOn(apiClient, 'get').mockResolvedValueOnce({
       data: {
         recipes: [
           {
+            recipeId: '11111',
             title: 'Paprika Chicken',
             cookpadUrl: 'https://cookpad.com/recipe-1',
             imageUrl: null,
             description: 'Simple one-pan chicken.',
-            ingredients: ['Chicken thighs', 'Paprika', 'Onion'],
           },
         ],
       },
@@ -32,31 +32,35 @@ describe('searchRecipes', () => {
     });
     expect(recipes).toEqual([
       {
+        recipeId: '11111',
         title: 'Paprika Chicken',
         cookpadUrl: 'https://cookpad.com/recipe-1',
         imageUrl: null,
         description: 'Simple one-pan chicken.',
-        ingredients: ['Chicken thighs', 'Paprika', 'Onion'],
       },
     ]);
   });
 
-  it('normalizes missing or null ingredient collections into empty arrays', async () => {
+  it('does not expect ingredients or method steps in compact response items', async () => {
     vi.spyOn(apiClient, 'get').mockResolvedValueOnce({
       data: {
         recipes: [
           {
+            recipeId: '22222',
             title: 'Tomato Toast',
             cookpadUrl: 'https://cookpad.com/recipe-2',
             imageUrl: null,
             description: 'Quick toast with tomato.',
-            ingredients: null,
+            ingredients: ['Tomato', 'Bread'],
+            methodSteps: ['Toast bread'],
           },
           {
+            recipeId: '33333',
             title: 'Butter Rice',
             cookpadUrl: 'https://cookpad.com/recipe-3',
             imageUrl: null,
             description: 'Simple rice side.',
+            methodSteps: ['Cook rice'],
           },
         ],
       },
@@ -72,18 +76,18 @@ describe('searchRecipes', () => {
 
     expect(recipes).toEqual([
       {
+        recipeId: '22222',
         title: 'Tomato Toast',
         cookpadUrl: 'https://cookpad.com/recipe-2',
         imageUrl: null,
         description: 'Quick toast with tomato.',
-        ingredients: [],
       },
       {
+        recipeId: '33333',
         title: 'Butter Rice',
         cookpadUrl: 'https://cookpad.com/recipe-3',
         imageUrl: null,
         description: 'Simple rice side.',
-        ingredients: [],
       },
     ]);
   });

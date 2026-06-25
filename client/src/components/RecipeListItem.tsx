@@ -4,12 +4,12 @@ import Box from '@mui/material/Box';
 import Button from '@mui/material/Button';
 import Typography from '@mui/material/Typography';
 
-import type { RecipeSummary } from '../services/recipeSearchService';
+import type { RecipeSearchListItem } from '../services/recipeSearchService';
 import { appOwnedBringButtonSx } from '../styles/bringButtonStyles';
 import { formatDescriptionPreview } from '../viewModels/recipeListItem';
 
 type RecipeListItemProps = {
-  recipe: RecipeSummary;
+  recipe: RecipeSearchListItem;
   onViewDetails: () => void;
 };
 

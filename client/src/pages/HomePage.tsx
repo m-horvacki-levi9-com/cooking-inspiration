@@ -9,7 +9,8 @@ import Typography from '@mui/material/Typography';
 
 import RecipeDetailModal from '../components/RecipeDetailModal';
 import RecipeListItem from '../components/RecipeListItem';
-import { searchRecipes, type RecipeSummary } from '../services/recipeSearchService';
+import { getRecipeDetails, type RecipeDetails } from '../services/recipeDetailsService';
+import { searchRecipes, type RecipeSearchListItem } from '../services/recipeSearchService';
 import {
   appOwnedBringButtonDisabledSx,
   appOwnedBringButtonSx,
@@ -17,6 +18,7 @@ import {
 import '../styles/home-page.css';
 
 type SearchStatus = 'idle' | 'loading' | 'success' | 'empty' | 'error';
+type DetailsStatus = 'idle' | 'loading' | 'success' | 'error';
 
 const panelSx = {
   backgroundColor: 'rgba(250, 252, 246, 0.94)',
@@ -40,10 +42,12 @@ const fadeSlideIn = {
 
 function HomePage() {
   const [keyword, setKeyword] = useState('');
-  const [recipes, setRecipes] = useState<RecipeSummary[]>([]);
+  const [recipes, setRecipes] = useState<RecipeSearchListItem[]>([]);
   const [searchStatus, setSearchStatus] = useState<SearchStatus>('idle');
   const [submittedKeyword, setSubmittedKeyword] = useState('');
-  const [selectedRecipe, setSelectedRecipe] = useState<RecipeSummary | null>(null);
+  const [selectedRecipe, setSelectedRecipe] = useState<RecipeSearchListItem | null>(null);
+  const [selectedRecipeDetails, setSelectedRecipeDetails] = useState<RecipeDetails | null>(null);
+  const [detailsStatus, setDetailsStatus] = useState<DetailsStatus>('idle');
   const [isRecipeDetailOpen, setIsRecipeDetailOpen] = useState(false);
 
   const trimmedKeyword = keyword.trim();
@@ -58,6 +62,8 @@ function HomePage() {
 
     setKeyword(normalizedKeyword);
     setSelectedRecipe(null);
+    setSelectedRecipeDetails(null);
+    setDetailsStatus('idle');
     setIsRecipeDetailOpen(false);
     setSearchStatus('loading');
     setSubmittedKeyword(normalizedKeyword);
@@ -78,9 +84,21 @@ function HomePage() {
     void performSearch(keyword);
   }
 
-  function handleViewDetails(recipe: RecipeSummary): void {
+  function handleViewDetails(recipe: RecipeSearchListItem): void {
     setSelectedRecipe(recipe);
+    setSelectedRecipeDetails(null);
+    setDetailsStatus('loading');
     setIsRecipeDetailOpen(true);
+
+    void (async () => {
+      try {
+        const details = await getRecipeDetails(recipe.recipeId);
+        setSelectedRecipeDetails(details);
+        setDetailsStatus('success');
+      } catch {
+        setDetailsStatus('error');
+      }
+    })();
   }
 
   function handleCloseModal(): void {
@@ -212,6 +230,8 @@ function HomePage() {
 
       <RecipeDetailModal
         recipe={selectedRecipe}
+        recipeDetails={selectedRecipeDetails}
+        detailsStatus={detailsStatus}
         open={isRecipeDetailOpen}
         onClose={handleCloseModal}
       />

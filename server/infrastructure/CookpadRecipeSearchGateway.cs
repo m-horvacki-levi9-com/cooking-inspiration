@@ -1,6 +1,5 @@
-using System.Text.RegularExpressions;
 using System.Text.Json;
-using CookingInspiration.Server.services;
+using System.Text.RegularExpressions;
 using HtmlAgilityPack;
 
 namespace CookingInspiration.Server.infrastructure;
@@ -35,114 +34,151 @@ public sealed partial class CookpadRecipeSearchGateway(HttpClient httpClient) : 
             return CookpadRecipeSearchResult.Success([]);
         }
 
-        var recipes = ParseRecipes(html);
-        if (recipes.Count == 0)
+        var recipes = ParseSearchRecipes(html);
+        return recipes.Count == 0
+            ? CookpadRecipeSearchResult.Failure()
+            : CookpadRecipeSearchResult.Success(recipes);
+    }
+
+    public async Task<CookpadRecipeDetailsResult> GetByRecipeIdAsync(string recipeId, CancellationToken cancellationToken)
+    {
+        using var response = await httpClient.GetAsync($"/eng/recipes/{Uri.EscapeDataString(recipeId)}", cancellationToken);
+        if (response.StatusCode == System.Net.HttpStatusCode.NotFound)
         {
-            return CookpadRecipeSearchResult.Failure();
+            return CookpadRecipeDetailsResult.NotFound();
         }
 
-        var enrichedRecipes = await EnrichRecipesAsync(recipes, cancellationToken);
-        return CookpadRecipeSearchResult.Success(enrichedRecipes);
-    }
-
-    private async Task<IReadOnlyList<CookpadRecipeCandidate>> EnrichRecipesAsync(IReadOnlyList<CookpadRecipeCandidate> recipes, CancellationToken cancellationToken)
-    {
-        var enrichmentTasks = recipes
-            .Select(recipe => EnrichRecipeAsync(recipe, cancellationToken))
-            .ToArray();
-
-        return await Task.WhenAll(enrichmentTasks);
-    }
-
-    private async Task<CookpadRecipeCandidate> EnrichRecipeAsync(CookpadRecipeCandidate recipe, CancellationToken cancellationToken)
-    {
-        if (!NeedsEnrichment(recipe))
+        if (!response.IsSuccessStatusCode)
         {
-            return recipe;
+            return CookpadRecipeDetailsResult.Failure();
         }
 
-        var details = await GetRecipeDetailsAsync(recipe.CookpadUrl, cancellationToken);
-        if (details is null)
+        var html = await response.Content.ReadAsStringAsync(cancellationToken);
+        if (IsChallengePage(html))
         {
-            return recipe;
+            return CookpadRecipeDetailsResult.Failure();
         }
 
-        return recipe with
-        {
-            Title = IsFallbackTitle(recipe.Title) ? FirstNonEmpty(details.Title, recipe.Title)! : recipe.Title,
-            ImageUrl = FirstNonEmpty(recipe.ImageUrl, details.ImageUrl),
-            Description = FirstNonEmpty(recipe.Description, details.Description),
-            Ingredients = recipe.Ingredients.Count > 0 ? recipe.Ingredients : details.Ingredients
-        };
+        return ParseRecipeDetails(html, recipeId) is { } details
+            ? CookpadRecipeDetailsResult.Success(details)
+            : CookpadRecipeDetailsResult.Failure();
     }
 
-    private static bool IsFallbackTitle(string title)
-    {
-        return title.StartsWith("Recipe ", StringComparison.OrdinalIgnoreCase)
-            || title.Equals("Recipe", StringComparison.OrdinalIgnoreCase);
-    }
-
-    private static bool NeedsEnrichment(CookpadRecipeCandidate recipe)
-    {
-        return string.IsNullOrWhiteSpace(recipe.ImageUrl)
-            || string.IsNullOrWhiteSpace(recipe.Description)
-            || recipe.Ingredients.Count == 0;
-    }
-
-    private async Task<RecipeDetails?> GetRecipeDetailsAsync(string recipeUrl, CancellationToken cancellationToken)
-    {
-        try
-        {
-            using var response = await httpClient.GetAsync(recipeUrl, cancellationToken);
-            if (!response.IsSuccessStatusCode)
-            {
-                return null;
-            }
-
-            var html = await response.Content.ReadAsStringAsync(cancellationToken);
-            if (IsChallengePage(html))
-            {
-                return null;
-            }
-
-            return ParseRecipeDetails(html);
-        }
-        catch (HttpRequestException)
-        {
-            return null;
-        }
-    }
-
-    private static RecipeDetails? ParseRecipeDetails(string html)
+    private static IReadOnlyList<CookpadRecipeCandidate> ParseSearchRecipes(string html)
     {
         var document = new HtmlDocument();
         document.LoadHtml(html);
 
-        var detailsFromJsonLd = TryParseRecipeDetailsFromJsonLd(document);
-        if (detailsFromJsonLd is not null)
+        return document.DocumentNode
+            .SelectNodes("//a[@href]")
+            ?.Select(MapSearchRecipe)
+            .OfType<CookpadRecipeCandidate>()
+            .DistinctBy(recipe => recipe.CookpadUrl)
+            .ToArray()
+            ?? [];
+    }
+
+    private static CookpadRecipeCandidate? MapSearchRecipe(HtmlNode node)
+    {
+        var href = node.GetAttributeValue("href", string.Empty).Trim();
+        if (!IsSupportedRecipeHref(href))
         {
-            return detailsFromJsonLd;
+            return null;
         }
 
-        var title = CleanText(document.DocumentNode.SelectSingleNode("//meta[@property='og:title']")?.GetAttributeValue("content", null))
-            ?? CleanText(document.DocumentNode.SelectSingleNode("//title")?.InnerText);
+        var normalizedHref = NormalizeHref(href);
+        if (!TryExtractRecipeId(normalizedHref, out var recipeId))
+        {
+            return null;
+        }
+
+        var recipeContext = GetRecipeContextNode(node);
+        var title = GetTitle(node, recipeContext) ?? $"Recipe {recipeId}";
+        var imageUrl = GetImageUrl(node, recipeContext);
+        var description = GetDescription(node, recipeContext);
+
+        return new CookpadRecipeCandidate(
+            recipeId,
+            title,
+            BuildCookpadUrl(normalizedHref),
+            imageUrl,
+            description);
+    }
+
+    private static CookpadRecipeDetails? ParseRecipeDetails(string html, string recipeId)
+    {
+        var document = new HtmlDocument();
+        document.LoadHtml(html);
+
+        var jsonLd = TryParseRecipeDetailsFromJsonLd(document);
+        var fallback = ParseDetailsFallback(document);
+        var steps = jsonLd?.MethodSteps.Count > 0 ? jsonLd.MethodSteps : fallback.MethodSteps;
+        var title = FirstNonEmpty(jsonLd?.Title, fallback.Title);
+        if (string.IsNullOrWhiteSpace(title))
+        {
+            return null;
+        }
+
+        return new CookpadRecipeDetails(
+            recipeId,
+            title!,
+            FirstNonEmpty(jsonLd?.CookpadUrl, fallback.CookpadUrl, BuildCookpadUrl($"/eng/recipes/{recipeId}"))!,
+            FirstNonEmpty(jsonLd?.ImageUrl, fallback.ImageUrl),
+            FirstNonEmpty(jsonLd?.Description, fallback.Description),
+            jsonLd?.Ingredients.Count > 0 ? jsonLd.Ingredients : fallback.Ingredients,
+            steps);
+    }
+
+    private static RecipeDetailsData ParseDetailsFallback(HtmlDocument document)
+    {
+        var title = FirstNonEmpty(
+            CleanText(document.DocumentNode.SelectSingleNode("//meta[@property='og:title']")?.GetAttributeValue("content", null)),
+            CleanText(document.DocumentNode.SelectSingleNode("//title")?.InnerText));
         var description = CleanText(document.DocumentNode.SelectSingleNode("//meta[@name='description']")?.GetAttributeValue("content", null));
         var imageUrl = FirstNonEmpty(
             document.DocumentNode.SelectSingleNode("//meta[@property='og:image']")?.GetAttributeValue("content", null),
             document.DocumentNode.SelectSingleNode("//img")?.GetAttributeValue("src", null));
+        var cookpadUrl = CleanText(document.DocumentNode.SelectSingleNode("//meta[@property='og:url']")?.GetAttributeValue("content", null));
 
         var ingredients = document.DocumentNode
-            .SelectNodes("//li")
-            ?.Select(ingredientNode => CleanText(ingredientNode.InnerText))
+            .SelectNodes("//li[@itemprop='recipeIngredient']|//*[@data-ingredients-redesign-target='ingredients']//li|//*[@data-ingredients-redesign-target='ingredients']//p|//*[@data-ingredients-redesign-target='ingredients']//div")
+            ?.Select(node => CleanText(node.InnerText))
             .OfType<string>()
             .Distinct()
             .ToArray()
             ?? [];
 
-        return new RecipeDetails(title, imageUrl, description, ingredients);
+        var methodSteps = ParseMethodStepsFromHtml(document);
+        return new RecipeDetailsData(title, cookpadUrl, imageUrl, description, ingredients, methodSteps);
     }
 
-    private static RecipeDetails? TryParseRecipeDetailsFromJsonLd(HtmlDocument document)
+    private static IReadOnlyList<string> ParseMethodStepsFromHtml(HtmlDocument document)
+    {
+        var methodSection = document.DocumentNode.SelectSingleNode(
+            "//h1[contains(translate(., 'ABCDEFGHIJKLMNOPQRSTUVWXYZ', 'abcdefghijklmnopqrstuvwxyz'), 'method') or contains(translate(., 'ABCDEFGHIJKLMNOPQRSTUVWXYZ', 'abcdefghijklmnopqrstuvwxyz'), 'instruction') or contains(translate(., 'ABCDEFGHIJKLMNOPQRSTUVWXYZ', 'abcdefghijklmnopqrstuvwxyz'), 'step')]|" +
+            "//h2[contains(translate(., 'ABCDEFGHIJKLMNOPQRSTUVWXYZ', 'abcdefghijklmnopqrstuvwxyz'), 'method') or contains(translate(., 'ABCDEFGHIJKLMNOPQRSTUVWXYZ', 'abcdefghijklmnopqrstuvwxyz'), 'instruction') or contains(translate(., 'ABCDEFGHIJKLMNOPQRSTUVWXYZ', 'abcdefghijklmnopqrstuvwxyz'), 'step')]|" +
+            "//h3[contains(translate(., 'ABCDEFGHIJKLMNOPQRSTUVWXYZ', 'abcdefghijklmnopqrstuvwxyz'), 'method') or contains(translate(., 'ABCDEFGHIJKLMNOPQRSTUVWXYZ', 'abcdefghijklmnopqrstuvwxyz'), 'instruction') or contains(translate(., 'ABCDEFGHIJKLMNOPQRSTUVWXYZ', 'abcdefghijklmnopqrstuvwxyz'), 'step')]");
+
+        var scopedSteps = methodSection?
+            .SelectNodes("following-sibling::ol[1]/li|following-sibling::ul[1]/li|following-sibling::*[1]//li")
+            ?.Select(step => CleanText(step.InnerText))
+            .OfType<string>()
+            .ToArray();
+
+        if (scopedSteps is { Length: > 0 })
+        {
+            return scopedSteps;
+        }
+
+        return document.DocumentNode
+            .SelectNodes("//ol/li[@itemprop='recipeInstructions']|//li[@itemprop='recipeInstructions']")
+            ?.Select(step => CleanText(step.InnerText))
+            .OfType<string>()
+            .ToArray()
+            ?? [];
+    }
+
+    private static RecipeDetailsData? TryParseRecipeDetailsFromJsonLd(HtmlDocument document)
     {
         var jsonLdNodes = document.DocumentNode.SelectNodes("//script[@type='application/ld+json']");
         if (jsonLdNodes is null)
@@ -161,32 +197,82 @@ public sealed partial class CookpadRecipeSearchGateway(HttpClient httpClient) : 
         return null;
     }
 
-    private static bool TryParseRecipeDetailsFromJson(string json, out RecipeDetails? details)
+    private static bool TryParseRecipeDetailsFromJson(string json, out RecipeDetailsData? details)
     {
         details = null;
 
         try
         {
             using var document = JsonDocument.Parse(json);
-            var root = document.RootElement;
-
-            if (TryGetRecipeNode(root, out var recipeNode))
+            if (!TryGetRecipeNode(document.RootElement, out var recipeNode))
             {
-                var title = GetStringProperty(recipeNode, "name");
-                var imageUrl = GetImageFromJsonLd(recipeNode);
-                var description = GetStringProperty(recipeNode, "description");
-                var ingredients = GetStringArrayProperty(recipeNode, "recipeIngredient");
-
-                details = new RecipeDetails(title, imageUrl, description, ingredients);
-                return true;
+                return false;
             }
+
+            details = new RecipeDetailsData(
+                GetStringProperty(recipeNode, "name"),
+                GetCookpadUrl(recipeNode),
+                GetImageFromJsonLd(recipeNode),
+                GetStringProperty(recipeNode, "description"),
+                GetStringArrayProperty(recipeNode, "recipeIngredient"),
+                GetMethodStepsFromJsonLd(recipeNode));
+            return true;
         }
         catch (JsonException)
         {
             return false;
         }
+    }
 
-        return false;
+    private static IReadOnlyList<string> GetMethodStepsFromJsonLd(JsonElement recipeNode)
+    {
+        if (!recipeNode.TryGetProperty("recipeInstructions", out var instructionsNode))
+        {
+            return [];
+        }
+
+        return instructionsNode.ValueKind switch
+        {
+            JsonValueKind.String => ToSingleStep(instructionsNode.GetString()),
+            JsonValueKind.Array => instructionsNode
+                .EnumerateArray()
+                .SelectMany(GetInstructionSteps)
+                .Distinct()
+                .ToArray(),
+            JsonValueKind.Object => GetInstructionSteps(instructionsNode).Distinct().ToArray(),
+            _ => []
+        };
+    }
+
+    private static IEnumerable<string> GetInstructionSteps(JsonElement instructionNode)
+    {
+        if (instructionNode.ValueKind == JsonValueKind.String)
+        {
+            return ToSingleStep(instructionNode.GetString());
+        }
+
+        if (instructionNode.ValueKind != JsonValueKind.Object)
+        {
+            return [];
+        }
+
+        var text = GetStringProperty(instructionNode, "text");
+        if (!string.IsNullOrWhiteSpace(text))
+        {
+            return [text];
+        }
+
+        if (instructionNode.TryGetProperty("itemListElement", out var itemsNode) && itemsNode.ValueKind == JsonValueKind.Array)
+        {
+            return itemsNode.EnumerateArray().SelectMany(GetInstructionSteps);
+        }
+
+        return [];
+    }
+
+    private static IReadOnlyList<string> ToSingleStep(string? step)
+    {
+        return CleanText(step) is { } value ? [value] : [];
     }
 
     private static bool TryGetRecipeNode(JsonElement element, out JsonElement recipeNode)
@@ -236,6 +322,29 @@ public sealed partial class CookpadRecipeSearchGateway(HttpClient httpClient) : 
                     && typeElement.GetString()?.Contains("Recipe", StringComparison.OrdinalIgnoreCase) == true),
             _ => false
         };
+    }
+
+    private static string? GetCookpadUrl(JsonElement recipeNode)
+    {
+        var url = GetStringProperty(recipeNode, "url");
+        if (!string.IsNullOrWhiteSpace(url))
+        {
+            return url;
+        }
+
+        if (!recipeNode.TryGetProperty("mainEntityOfPage", out var mainEntityNode))
+        {
+            return null;
+        }
+
+        if (mainEntityNode.ValueKind == JsonValueKind.String)
+        {
+            return CleanText(mainEntityNode.GetString());
+        }
+
+        return mainEntityNode.ValueKind == JsonValueKind.Object
+            ? GetStringProperty(mainEntityNode, "@id")
+            : null;
     }
 
     private static string? GetImageFromJsonLd(JsonElement recipeNode)
@@ -301,53 +410,6 @@ public sealed partial class CookpadRecipeSearchGateway(HttpClient httpClient) : 
             || html.Contains("JavaScript is disabled in your browser.", StringComparison.OrdinalIgnoreCase);
     }
 
-    private static IReadOnlyList<CookpadRecipeCandidate> ParseRecipes(string html)
-    {
-        var document = new HtmlDocument();
-        document.LoadHtml(html);
-
-        return document.DocumentNode
-            .SelectNodes("//a[@href]")
-            ?.Select(MapRecipe)
-            .OfType<CookpadRecipeCandidate>()
-            .DistinctBy(recipe => recipe.CookpadUrl)
-            .ToArray()
-            ?? [];
-    }
-
-    private static CookpadRecipeCandidate? MapRecipe(HtmlNode node)
-    {
-        var href = node.GetAttributeValue("href", string.Empty).Trim();
-        if (!IsSupportedRecipeHref(href))
-        {
-            return null;
-        }
-
-        var recipeContext = GetRecipeContextNode(node);
-        var title = GetTitle(node, recipeContext);
-        var imageUrl = GetImageUrl(node, recipeContext);
-        var description = GetDescription(node, recipeContext);
-        var ingredients = GetIngredients(node, recipeContext);
-
-        if (string.IsNullOrWhiteSpace(title)
-            && string.IsNullOrWhiteSpace(imageUrl)
-            && string.IsNullOrWhiteSpace(description)
-            && ingredients.Count == 0
-            && !IsCanonicalRecipeHref(href))
-        {
-            return null;
-        }
-
-        title ??= BuildFallbackTitleFromHref(href);
-
-        return new CookpadRecipeCandidate(
-            title,
-            BuildCookpadUrl(NormalizeHref(href)),
-            imageUrl,
-            description,
-            ingredients);
-    }
-
     private static bool IsSupportedRecipeHref(string href)
     {
         return href.Contains("/recipes/", StringComparison.OrdinalIgnoreCase)
@@ -355,9 +417,11 @@ public sealed partial class CookpadRecipeSearchGateway(HttpClient httpClient) : 
             && !href.Contains("/bookmark_folders", StringComparison.OrdinalIgnoreCase);
     }
 
-    private static bool IsCanonicalRecipeHref(string href)
+    private static bool TryExtractRecipeId(string href, out string recipeId)
     {
-        return CanonicalRecipeHrefRegex().IsMatch(href);
+        var match = RecipeIdRegex().Match(href);
+        recipeId = match.Success ? match.Groups[1].Value : string.Empty;
+        return match.Success;
     }
 
     private static HtmlNode GetRecipeContextNode(HtmlNode node)
@@ -381,12 +445,6 @@ public sealed partial class CookpadRecipeSearchGateway(HttpClient httpClient) : 
     {
         var normalized = MeSegmentRegex().Replace(href, "/");
         return BookmarkFoldersSegmentRegex().Replace(normalized, string.Empty);
-    }
-
-    private static string BuildFallbackTitleFromHref(string href)
-    {
-        var match = RecipeIdRegex().Match(href);
-        return match.Success ? $"Recipe {match.Groups[1].Value}" : "Recipe";
     }
 
     private static string BuildCookpadUrl(string href)
@@ -426,43 +484,6 @@ public sealed partial class CookpadRecipeSearchGateway(HttpClient httpClient) : 
             CleanText(linkNode.GetAttributeValue("title", null)));
     }
 
-    private static IReadOnlyList<string> GetIngredients(HtmlNode linkNode, HtmlNode recipeContextNode)
-    {
-        var listIngredients = recipeContextNode.SelectNodes(".//ul/li")
-            ?.Select(ingredientNode => CleanText(ingredientNode.InnerText))
-            .OfType<string>()
-            .ToArray()
-            ?? [];
-
-        if (listIngredients.Length > 0)
-        {
-            return listIngredients;
-        }
-
-        listIngredients = linkNode.SelectNodes(".//ul/li")
-            ?.Select(ingredientNode => CleanText(ingredientNode.InnerText))
-            .OfType<string>()
-            .ToArray()
-            ?? [];
-
-        if (listIngredients.Length > 0)
-        {
-            return listIngredients;
-        }
-
-        var redesignedIngredients = recipeContextNode.SelectSingleNode(".//*[@data-ingredients-redesign-target='ingredients']")
-            ?? linkNode.SelectSingleNode(".//*[@data-ingredients-redesign-target='ingredients']");
-
-        return redesignedIngredients
-            ?.DescendantsAndSelf()
-            .Where(ingredientNode => ingredientNode.NodeType == HtmlNodeType.Text)
-            .Select(ingredientNode => CleanText(ingredientNode.InnerText))
-            .OfType<string>()
-            .SelectMany(SplitIngredientSegments)
-            .ToArray()
-            ?? [];
-    }
-
     private static string? GetUrlFromSrcSet(string? srcSet)
     {
         return srcSet?
@@ -489,17 +510,6 @@ public sealed partial class CookpadRecipeSearchGateway(HttpClient httpClient) : 
     [GeneratedRegex(@"\s+")]
     private static partial Regex WhitespaceRegex();
 
-    private static IEnumerable<string> SplitIngredientSegments(string value)
-    {
-        return IngredientSeparatorRegex()
-            .Split(value)
-            .Select(CleanText)
-            .OfType<string>();
-    }
-
-    [GeneratedRegex(@"\s*[•·●▪]\s*")]
-    private static partial Regex IngredientSeparatorRegex();
-
     [GeneratedRegex(@"/me/", RegexOptions.IgnoreCase)]
     private static partial Regex MeSegmentRegex();
 
@@ -509,8 +519,11 @@ public sealed partial class CookpadRecipeSearchGateway(HttpClient httpClient) : 
     [GeneratedRegex(@"/recipes/(\d+)", RegexOptions.IgnoreCase)]
     private static partial Regex RecipeIdRegex();
 
-    [GeneratedRegex(@"^/?([a-z]{2,3}/)?recipes/\d+", RegexOptions.IgnoreCase)]
-    private static partial Regex CanonicalRecipeHrefRegex();
-
-    private sealed record RecipeDetails(string? Title, string? ImageUrl, string? Description, IReadOnlyList<string> Ingredients);
+    private sealed record RecipeDetailsData(
+        string? Title,
+        string? CookpadUrl,
+        string? ImageUrl,
+        string? Description,
+        IReadOnlyList<string> Ingredients,
+        IReadOnlyList<string> MethodSteps);
 }
