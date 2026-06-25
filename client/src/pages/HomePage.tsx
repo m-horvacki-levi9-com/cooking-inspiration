@@ -2,14 +2,17 @@ import type { FormEvent } from 'react';
 import { useState } from 'react';
 
 import Box from '@mui/material/Box';
+import Backdrop from '@mui/material/Backdrop';
 import Button from '@mui/material/Button';
+import CircularProgress from '@mui/material/CircularProgress';
 import Paper from '@mui/material/Paper';
 import TextField from '@mui/material/TextField';
 import Typography from '@mui/material/Typography';
 
 import RecipeDetailModal from '../components/RecipeDetailModal';
 import RecipeListItem from '../components/RecipeListItem';
-import { searchRecipes, type RecipeSummary } from '../services/recipeSearchService';
+import { getRecipeDetails, type RecipeDetails } from '../services/recipeDetailsService';
+import { searchRecipes, type RecipeSearchListItem } from '../services/recipeSearchService';
 import {
   appOwnedBringButtonDisabledSx,
   appOwnedBringButtonSx,
@@ -17,6 +20,7 @@ import {
 import '../styles/home-page.css';
 
 type SearchStatus = 'idle' | 'loading' | 'success' | 'empty' | 'error';
+type DetailsStatus = 'idle' | 'loading' | 'success' | 'error';
 
 const panelSx = {
   backgroundColor: 'rgba(250, 252, 246, 0.94)',
@@ -40,14 +44,17 @@ const fadeSlideIn = {
 
 function HomePage() {
   const [keyword, setKeyword] = useState('');
-  const [recipes, setRecipes] = useState<RecipeSummary[]>([]);
+  const [recipes, setRecipes] = useState<RecipeSearchListItem[]>([]);
   const [searchStatus, setSearchStatus] = useState<SearchStatus>('idle');
   const [submittedKeyword, setSubmittedKeyword] = useState('');
-  const [selectedRecipe, setSelectedRecipe] = useState<RecipeSummary | null>(null);
+  const [selectedRecipe, setSelectedRecipe] = useState<RecipeSearchListItem | null>(null);
+  const [selectedRecipeDetails, setSelectedRecipeDetails] = useState<RecipeDetails | null>(null);
+  const [detailsStatus, setDetailsStatus] = useState<DetailsStatus>('idle');
   const [isRecipeDetailOpen, setIsRecipeDetailOpen] = useState(false);
 
   const trimmedKeyword = keyword.trim();
   const isSearchDisabled = trimmedKeyword.length === 0 || searchStatus === 'loading';
+  const isDetailsLoading = detailsStatus === 'loading';
 
   async function performSearch(nextKeyword: string) {
     const normalizedKeyword = nextKeyword.trim();
@@ -58,6 +65,8 @@ function HomePage() {
 
     setKeyword(normalizedKeyword);
     setSelectedRecipe(null);
+    setSelectedRecipeDetails(null);
+    setDetailsStatus('idle');
     setIsRecipeDetailOpen(false);
     setSearchStatus('loading');
     setSubmittedKeyword(normalizedKeyword);
@@ -78,9 +87,23 @@ function HomePage() {
     void performSearch(keyword);
   }
 
-  function handleViewDetails(recipe: RecipeSummary): void {
+  function handleViewDetails(recipe: RecipeSearchListItem): void {
     setSelectedRecipe(recipe);
-    setIsRecipeDetailOpen(true);
+    setSelectedRecipeDetails(null);
+    setDetailsStatus('loading');
+    setIsRecipeDetailOpen(false);
+
+    void (async () => {
+      try {
+        const details = await getRecipeDetails(recipe.recipeId);
+        setSelectedRecipeDetails(details);
+        setDetailsStatus('success');
+        setIsRecipeDetailOpen(true);
+      } catch {
+        setDetailsStatus('error');
+        setIsRecipeDetailOpen(true);
+      }
+    })();
   }
 
   function handleCloseModal(): void {
@@ -210,8 +233,40 @@ function HomePage() {
         </section>
       ) : null}
 
+      <Backdrop
+        open={isDetailsLoading}
+        sx={{
+          color: '#fff',
+          zIndex: (theme) => theme.zIndex.modal + 1,
+          backgroundColor: 'rgba(31, 45, 24, 0.42)',
+          backdropFilter: 'blur(6px)',
+        }}
+      >
+        <Box
+          role="status"
+          aria-live="polite"
+          sx={{
+            display: 'grid',
+            justifyItems: 'center',
+            gap: 2,
+            px: 3,
+            py: 2.5,
+            borderRadius: '1.5rem',
+            border: '1px solid rgba(231, 245, 198, 0.28)',
+            backgroundColor: 'rgba(22, 36, 17, 0.78)',
+            boxShadow: '0 20px 60px rgba(17, 24, 13, 0.3)',
+          }}
+        >
+          <CircularProgress color="inherit" thickness={4.5} size={42} />
+          <Typography sx={{ fontWeight: 700, letterSpacing: '0.01em' }}>
+            Loading recipe details…
+          </Typography>
+        </Box>
+      </Backdrop>
+
       <RecipeDetailModal
         recipe={selectedRecipe}
+        recipeDetails={selectedRecipeDetails}
         open={isRecipeDetailOpen}
         onClose={handleCloseModal}
       />

@@ -2,14 +2,14 @@ import { render, screen } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 
 import RecipeListItem from '../components/RecipeListItem';
-import type { RecipeSummary } from '../services/recipeSearchService';
+import type { RecipeSearchListItem } from '../services/recipeSearchService';
 
-const baseRecipe: RecipeSummary = {
+const baseRecipe: RecipeSearchListItem = {
+  recipeId: '11111',
   title: 'Creamy Pesto Pasta',
   cookpadUrl: 'https://cookpad.com/recipe-1',
   imageUrl: 'https://images.example.com/pasta.jpg',
   description: 'A quick pasta dinner with pesto and cream.',
-  ingredients: ['Pasta', 'Pesto', 'Cream'],
 };
 
 const renderBringWidget = vi.fn();
@@ -40,7 +40,7 @@ describe('RecipeListItem', () => {
   });
 
   it('renders no img element when imageUrl is null', () => {
-    const noImageRecipe: RecipeSummary = { ...baseRecipe, imageUrl: null };
+    const noImageRecipe: RecipeSearchListItem = { ...baseRecipe, imageUrl: null };
 
     render(<RecipeListItem recipe={noImageRecipe} onViewDetails={vi.fn()} />);
 
@@ -55,7 +55,7 @@ describe('RecipeListItem', () => {
 
   it('truncates a long description to a short preview ending with an ellipsis', () => {
     const longDescription = 'a'.repeat(200);
-    const longRecipe: RecipeSummary = { ...baseRecipe, description: longDescription };
+    const longRecipe: RecipeSearchListItem = { ...baseRecipe, description: longDescription };
 
     render(<RecipeListItem recipe={longRecipe} onViewDetails={vi.fn()} />);
 
@@ -67,7 +67,7 @@ describe('RecipeListItem', () => {
   });
 
   it('renders no description text when description is null', () => {
-    const noDescRecipe: RecipeSummary = { ...baseRecipe, description: null };
+    const noDescRecipe: RecipeSearchListItem = { ...baseRecipe, description: null };
 
     render(<RecipeListItem recipe={noDescRecipe} onViewDetails={vi.fn()} />);
 
@@ -125,7 +125,7 @@ describe('RecipeListItem', () => {
   });
 
   it('does not render "Import to Bring!" when cookpadUrl is empty', () => {
-    const noUrlRecipe: RecipeSummary = { ...baseRecipe, cookpadUrl: '' };
+    const noUrlRecipe: RecipeSearchListItem = { ...baseRecipe, cookpadUrl: '' };
 
     render(<RecipeListItem recipe={noUrlRecipe} onViewDetails={vi.fn()} />);
 

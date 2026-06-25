@@ -1,14 +1,16 @@
 import { render, screen } from '@testing-library/react';
 
 import RecipeCard from '../components/RecipeCard';
-import type { RecipeSummary } from '../services/recipeSearchService';
+import type { RecipeDetails } from '../services/recipeDetailsService';
 
-const baseRecipe: RecipeSummary = {
+const baseRecipe: RecipeDetails = {
+  recipeId: '11111',
   title: 'Creamy Pesto Pasta',
   cookpadUrl: 'https://cookpad.com/recipe-1',
   imageUrl: 'https://images.example.com/pasta.jpg',
   description: 'A quick pasta dinner with pesto and cream.',
   ingredients: ['Pasta', 'Pesto', 'Cream'],
+  methodSteps: ['Boil pasta.', 'Mix sauce.'],
 };
 
 const renderBringWidget = vi.fn();
@@ -67,7 +69,7 @@ describe('RecipeCard', () => {
   });
 
   it('does not render the "Import to Bring!" button when the recipe URL is empty', () => {
-    const recipeWithoutUrl: RecipeSummary = { ...baseRecipe, cookpadUrl: '' };
+    const recipeWithoutUrl: RecipeDetails = { ...baseRecipe, cookpadUrl: '' };
 
     render(<RecipeCard recipe={recipeWithoutUrl} />);
 
@@ -112,7 +114,7 @@ describe('RecipeCard', () => {
   });
 
   it('falls back to placeholder text when no image is provided', () => {
-    const recipeNoImage: RecipeSummary = { ...baseRecipe, imageUrl: null };
+    const recipeNoImage: RecipeDetails = { ...baseRecipe, imageUrl: null };
 
     render(<RecipeCard recipe={recipeNoImage} />);
 
@@ -121,7 +123,7 @@ describe('RecipeCard', () => {
   });
 
   it('falls back to default description text when description is null', () => {
-    const recipeNoDescription: RecipeSummary = { ...baseRecipe, description: null };
+    const recipeNoDescription: RecipeDetails = { ...baseRecipe, description: null };
 
     render(<RecipeCard recipe={recipeNoDescription} />);
 
@@ -129,7 +131,7 @@ describe('RecipeCard', () => {
   });
 
   it('falls back to default ingredients text when ingredients list is empty', () => {
-    const recipeNoIngredients: RecipeSummary = { ...baseRecipe, ingredients: [] };
+    const recipeNoIngredients: RecipeDetails = { ...baseRecipe, ingredients: [] };
 
     render(<RecipeCard recipe={recipeNoIngredients} />);
 

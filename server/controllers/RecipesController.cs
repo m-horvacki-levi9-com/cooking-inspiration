@@ -5,7 +5,7 @@ namespace CookingInspiration.Server.controllers;
 
 [ApiController]
 [Route("api/recipes")]
-public sealed class RecipesController(IRecipeSearchService recipeSearchService) : ControllerBase
+public sealed class RecipesController(IRecipeSearchService recipeSearchService, IRecipeDetailsService recipeDetailsService) : ControllerBase
 {
     [HttpGet("search")]
     public async Task<ActionResult<RecipeSearchResponse>> Search([FromQuery] string? keyword, CancellationToken cancellationToken)
@@ -22,6 +22,27 @@ public sealed class RecipesController(IRecipeSearchService recipeSearchService) 
                 detail: "Cookpad recipe search is currently unavailable.",
                 statusCode: StatusCodes.Status502BadGateway),
             _ => throw new InvalidOperationException($"Unsupported recipe search status '{result.Status}'.")
+        };
+    }
+
+    [HttpGet("{recipeId}")]
+    public async Task<ActionResult<RecipeDetailsResponse>> Details([FromRoute] string recipeId, CancellationToken cancellationToken)
+    {
+        var result = await recipeDetailsService.GetByRecipeIdAsync(recipeId, cancellationToken);
+
+        return result.Status switch
+        {
+            RecipeDetailsStatus.Success => Ok(result.Response),
+            RecipeDetailsStatus.InvalidRecipeId => Problem(
+                detail: "The recipeId route parameter is required.",
+                statusCode: StatusCodes.Status400BadRequest),
+            RecipeDetailsStatus.NotFound => Problem(
+                detail: "Recipe details were not found on Cookpad.",
+                statusCode: StatusCodes.Status404NotFound),
+            RecipeDetailsStatus.ExternalFailure => Problem(
+                detail: "Cookpad recipe details are currently unavailable.",
+                statusCode: StatusCodes.Status502BadGateway),
+            _ => throw new InvalidOperationException($"Unsupported recipe details status '{result.Status}'.")
         };
     }
 }

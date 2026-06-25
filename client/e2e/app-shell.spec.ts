@@ -14,21 +14,36 @@ test('shows recipe results as a list and opens an accessible detail modal', asyn
       body: JSON.stringify({
         recipes: [
           {
+            recipeId: '11111',
             title: 'Creamy Pesto Pasta',
             cookpadUrl: 'https://cookpad.com/recipe-1',
             imageUrl: 'https://images.example.com/pasta.jpg',
             description:
               'A quick pasta dinner with pesto and cream that is easy to read in the modal after opening recipe details.',
-            ingredients: ['Pasta', 'Pesto', 'Cream'],
           },
           {
+            recipeId: '22222',
             title: 'Roasted Tomato Soup',
             cookpadUrl: 'https://cookpad.com/recipe-2',
             imageUrl: null,
             description: null,
-            ingredients: [],
           },
         ],
+      }),
+    });
+  });
+  await page.route('**/api/recipes/11111', async (route) => {
+    await route.fulfill({
+      contentType: 'application/json',
+      body: JSON.stringify({
+        recipeId: '11111',
+        title: 'Creamy Pesto Pasta',
+        cookpadUrl: 'https://cookpad.com/eng/recipes/11111',
+        imageUrl: 'https://images.example.com/pasta.jpg',
+        description:
+          'A quick pasta dinner with pesto and cream that is easy to read in the modal after opening recipe details.',
+        ingredients: ['Pasta', 'Pesto', 'Cream'],
+        methodSteps: ['Boil pasta.', 'Stir in pesto.', 'Finish with cream.'],
       }),
     });
   });
@@ -56,7 +71,7 @@ test('shows recipe results as a list and opens an accessible detail modal', asyn
   await expect(dialog).toBeVisible();
   await expect(page.getByRole('heading', { level: 2, name: 'Creamy Pesto Pasta' })).toBeVisible();
   await expect(dialog.getByText('Pasta', { exact: true })).toBeVisible();
-  await expect(dialog.getByText('We will soon add method steps here')).toBeVisible();
+  await expect(dialog.getByText('Boil pasta.')).toBeVisible();
 
   await page.keyboard.press('Escape');
 

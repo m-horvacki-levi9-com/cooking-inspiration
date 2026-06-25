@@ -1,18 +1,18 @@
 import { apiClient } from './apiClient';
 
-export type RecipeSummary = {
+export type RecipeSearchListItem = {
+  recipeId: string;
   title: string;
   cookpadUrl: string;
   imageUrl: string | null;
   description: string | null;
-  ingredients: string[];
 };
 
 type RecipeSearchResponse = {
-  recipes: Array<Omit<RecipeSummary, 'ingredients'> & { ingredients?: string[] | null }>;
+  recipes: RecipeSearchListItem[];
 };
 
-export async function searchRecipes(keyword: string): Promise<RecipeSummary[]> {
+export async function searchRecipes(keyword: string): Promise<RecipeSearchListItem[]> {
   const response = await apiClient.get<RecipeSearchResponse>('/recipes/search', {
     params: {
       keyword: keyword.trim(),
@@ -20,7 +20,10 @@ export async function searchRecipes(keyword: string): Promise<RecipeSummary[]> {
   });
 
   return response.data.recipes.map((recipe) => ({
-    ...recipe,
-    ingredients: Array.isArray(recipe.ingredients) ? recipe.ingredients : [],
+    recipeId: recipe.recipeId,
+    title: recipe.title,
+    cookpadUrl: recipe.cookpadUrl,
+    imageUrl: recipe.imageUrl,
+    description: recipe.description,
   }));
 }

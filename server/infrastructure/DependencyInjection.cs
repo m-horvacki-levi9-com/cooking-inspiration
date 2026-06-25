@@ -8,6 +8,7 @@ public static class DependencyInjection
     {
         services.AddScoped<IHealthService, HealthService>();
         services.AddScoped<IRecipeSearchService, RecipeSearchService>();
+        services.AddScoped<IRecipeDetailsService, RecipeDetailsService>();
         services.AddSingleton<IRandomValueProvider, RandomValueProvider>();
         services.AddHttpClient<ICookpadRecipeSearchGateway, CookpadRecipeSearchGateway>(client =>
         {
