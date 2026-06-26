@@ -1,7 +1,9 @@
 using System.Net;
 using System.Net.Http.Json;
 using System.Text.Json;
+using CookingInspiration.Server.domain;
 using CookingInspiration.Server.infrastructure;
+using CookingInspiration.Server.infrastructure.Cookpad;
 using CookingInspiration.Server.services;
 using FluentAssertions;
 using Microsoft.AspNetCore.Mvc;
@@ -90,7 +92,7 @@ public sealed class RecipesEndpointTests : IClassFixture<WebApplicationFactory<P
         var response = await client.GetAsync("/api/recipes/123");
 
         response.StatusCode.Should().Be(HttpStatusCode.OK);
-        var payload = await response.Content.ReadFromJsonAsync<RecipeDetailsResponse>();
+        var payload = await response.Content.ReadFromJsonAsync<RecipeCard>();
         payload.Should().NotBeNull();
         payload!.CookpadUrl.Should().Be("https://cookpad.com/eng/recipes/123");
         payload.MethodSteps.Should().Equal("Boil pasta", "Mix cream");
@@ -115,7 +117,7 @@ public sealed class RecipesEndpointTests : IClassFixture<WebApplicationFactory<P
         var response = await client.GetAsync("/api/recipes/123");
 
         response.StatusCode.Should().Be(HttpStatusCode.OK);
-        var payload = await response.Content.ReadFromJsonAsync<RecipeDetailsResponse>();
+        var payload = await response.Content.ReadFromJsonAsync<RecipeCard>();
         payload.Should().NotBeNull();
         payload!.MethodSteps.Should().BeEmpty();
     }
@@ -126,25 +128,59 @@ public sealed class RecipesEndpointTests : IClassFixture<WebApplicationFactory<P
         {
             builder.ConfigureTestServices(services =>
             {
-                services.RemoveAll<ICookpadRecipeSearchGateway>();
                 services.RemoveAll<IRandomValueProvider>();
 
-                services.AddSingleton<ICookpadRecipeSearchGateway>(new StubCookpadRecipeSearchGateway(searchResult, detailsResult));
                 services.AddSingleton(randomValueProvider);
+                services.AddKeyedScoped<IRecipeRepository>(
+                    RecipeProviders.Cookpad,
+                    (provider, _) => new StubRecipeRepository(
+                        searchResult,
+                        detailsResult,
+                        provider.GetRequiredService<IRandomValueProvider>()));
             });
         }).CreateClient();
     }
 
-    private sealed class StubCookpadRecipeSearchGateway(CookpadRecipeSearchResult searchResult, CookpadRecipeDetailsResult detailsResult) : ICookpadRecipeSearchGateway
+    private sealed class StubRecipeRepository(
+        CookpadRecipeSearchResult searchResult,
+        CookpadRecipeDetailsResult detailsResult,
+        IRandomValueProvider randomValueProvider) : IRecipeRepository
     {
-        public Task<CookpadRecipeSearchResult> SearchAsync(string keyword, CancellationToken cancellationToken)
+        public Task<IReadOnlyList<RecipeSummary>> SearchSummariesAsync(string keyword, CancellationToken cancellationToken)
         {
-            return Task.FromResult(searchResult);
+            if (!searchResult.IsSuccess)
+            {
+                return Task.FromResult<IReadOnlyList<RecipeSummary>>([]);
+            }
+
+            var summaries = searchResult.Recipes
+                .OrderBy(_ => randomValueProvider.Next())
+                .Take(4)
+                .Select(recipe => new RecipeSummary(
+                    recipe.RecipeId,
+                    recipe.Title,
+                    recipe.CookpadUrl,
+                    recipe.ImageUrl,
+                    recipe.Description))
+                .ToArray();
+
+            return Task.FromResult<IReadOnlyList<RecipeSummary>>(summaries);
         }
 
-        public Task<CookpadRecipeDetailsResult> GetByRecipeIdAsync(string recipeId, CancellationToken cancellationToken)
+        public Task<RecipeCard?> GetRecipeCardAsync(string recipeId, CancellationToken cancellationToken)
         {
-            return Task.FromResult(detailsResult);
+            var card = detailsResult.Status == CookpadRecipeDetailsStatus.Success
+                ? new RecipeCard(
+                    detailsResult.Details!.RecipeId,
+                    detailsResult.Details.Title,
+                    detailsResult.Details.CookpadUrl,
+                    detailsResult.Details.ImageUrl,
+                    detailsResult.Details.Description,
+                    detailsResult.Details.Ingredients,
+                    detailsResult.Details.MethodSteps)
+                : null;
+
+            return Task.FromResult(card);
         }
     }
 

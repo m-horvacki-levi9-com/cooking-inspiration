@@ -1,13 +1,15 @@
 using System.Net;
+using CookingInspiration.Server.domain;
 using CookingInspiration.Server.infrastructure;
+using CookingInspiration.Server.infrastructure.Cookpad;
 using FluentAssertions;
 
 namespace CookingInspiration.Server.Tests.recipes;
 
-public sealed class CookpadRecipeSearchGatewayTests
+public sealed class CookpadRecipeRepositoryTests
 {
     [Fact]
-    public async Task SearchAsync_UsesCookpadEnglishSearchPath()
+    public async Task SearchSummariesAsync_UsesCookpadEnglishSearchPath()
     {
         string? requestedPath = null;
         using var httpClient = new HttpClient(new StubHttpMessageHandler(request =>
@@ -22,15 +24,15 @@ public sealed class CookpadRecipeSearchGatewayTests
             BaseAddress = new Uri("https://cookpad.com")
         };
 
-        var gateway = new CookpadRecipeSearchGateway(httpClient);
+        var repository = new CookpadRecipeRepository(httpClient, new StableRandomValueProvider());
 
-        await gateway.SearchAsync("pasta", CancellationToken.None);
+        await repository.SearchSummariesAsync("pasta", CancellationToken.None);
 
         requestedPath.Should().Be("/eng/search/pasta");
     }
 
     [Fact]
-    public async Task SearchAsync_WhenResponseContainsValidRecipeCards_ReturnsCompactRecipesWithoutIngredients()
+    public async Task SearchSummariesAsync_WhenResponseContainsValidRecipeSummaries_ReturnsCompactRecipesWithoutIngredients()
     {
         using var httpClient = new HttpClient(new StubHttpMessageHandler(_ => new HttpResponseMessage(HttpStatusCode.OK)
         {
@@ -62,20 +64,19 @@ public sealed class CookpadRecipeSearchGatewayTests
             BaseAddress = new Uri("https://cookpad.com")
         };
 
-        var gateway = new CookpadRecipeSearchGateway(httpClient);
+        var repository = new CookpadRecipeRepository(httpClient, new StableRandomValueProvider());
 
-        var result = await gateway.SearchAsync("pasta", CancellationToken.None);
+        var result = await repository.SearchSummariesAsync("pasta", CancellationToken.None);
 
-        result.IsSuccess.Should().BeTrue();
-        result.Recipes.Should().BeEquivalentTo(
+        result.Should().BeEquivalentTo(
         [
-           new CookpadRecipeCandidate("11111", "Creamy Pasta", "https://cookpad.com/eng/recipes/11111", "https://images/1.jpg", "Rich and simple."),
-           new CookpadRecipeCandidate("22222", "Tomato Soup", "https://cookpad.com/eng/recipes/22222", "https://images/2.jpg", "Comfort in a bowl.")
+           new RecipeSummary("11111", "Creamy Pasta", "https://cookpad.com/eng/recipes/11111", "https://images/1.jpg", "Rich and simple."),
+           new RecipeSummary("22222", "Tomato Soup", "https://cookpad.com/eng/recipes/22222", "https://images/2.jpg", "Comfort in a bowl.")
         ]);
     }
 
     [Fact]
-    public async Task SearchAsync_WhenRecipeUrlContainsMeSegmentOnly_NormalizesItToCleanRecipeUrl()
+    public async Task SearchSummariesAsync_WhenRecipeUrlContainsMeSegmentOnly_NormalizesItToCleanRecipeUrl()
     {
         using var httpClient = new HttpClient(new StubHttpMessageHandler(_ => new HttpResponseMessage(HttpStatusCode.OK)
         {
@@ -100,17 +101,16 @@ public sealed class CookpadRecipeSearchGatewayTests
             BaseAddress = new Uri("https://cookpad.com")
         };
 
-        var gateway = new CookpadRecipeSearchGateway(httpClient);
+        var repository = new CookpadRecipeRepository(httpClient, new StableRandomValueProvider());
 
-        var result = await gateway.SearchAsync("pasta", CancellationToken.None);
+        var result = await repository.SearchSummariesAsync("pasta", CancellationToken.None);
 
-        result.IsSuccess.Should().BeTrue();
-        result.Recipes.Should().ContainSingle();
-        result.Recipes.Single().CookpadUrl.Should().Be("https://cookpad.com/eng/recipes/55555");
+        result.Should().ContainSingle();
+        result.Single().CookpadUrl.Should().Be("https://cookpad.com/eng/recipes/55555");
     }
 
     [Fact]
-    public async Task GetByRecipeIdAsync_WhenJsonLdContainsRecipeInstructions_ReturnsStructuredSteps()
+    public async Task GetRecipeCardAsync_WhenJsonLdContainsRecipeInstructions_ReturnsStructuredSteps()
     {
         string? requestedPath = null;
         using var httpClient = new HttpClient(new StubHttpMessageHandler(request =>
@@ -151,19 +151,18 @@ public sealed class CookpadRecipeSearchGatewayTests
             BaseAddress = new Uri("https://cookpad.com")
         };
 
-        var gateway = new CookpadRecipeSearchGateway(httpClient);
+        var repository = new CookpadRecipeRepository(httpClient, new StableRandomValueProvider());
 
-        var result = await gateway.GetByRecipeIdAsync("11111", CancellationToken.None);
+        var result = await repository.GetRecipeCardAsync("11111", CancellationToken.None);
 
-        result.Status.Should().Be(CookpadRecipeDetailsStatus.Success);
-        result.Details.Should().NotBeNull();
-        result.Details!.MethodSteps.Should().Equal("Slice potatoes", "Pan fry until golden");
-        result.Details.CookpadUrl.Should().Be("https://cookpad.com/eng/recipes/11111");
+        result.Should().NotBeNull();
+        result!.MethodSteps.Should().Equal("Slice potatoes", "Pan fry until golden");
+        result.CookpadUrl.Should().Be("https://cookpad.com/eng/recipes/11111");
         requestedPath.Should().Be("/eng/recipes/11111");
     }
 
     [Fact]
-    public async Task GetByRecipeIdAsync_WhenJsonLdHasNoSteps_ParsesStepsFromHtmlFallback()
+    public async Task GetRecipeCardAsync_WhenJsonLdHasNoSteps_ParsesStepsFromHtmlFallback()
     {
         using var httpClient = new HttpClient(new StubHttpMessageHandler(request =>
         {
@@ -200,17 +199,16 @@ public sealed class CookpadRecipeSearchGatewayTests
             BaseAddress = new Uri("https://cookpad.com")
         };
 
-        var gateway = new CookpadRecipeSearchGateway(httpClient);
+        var repository = new CookpadRecipeRepository(httpClient, new StableRandomValueProvider());
 
-        var result = await gateway.GetByRecipeIdAsync("11111", CancellationToken.None);
+        var result = await repository.GetRecipeCardAsync("11111", CancellationToken.None);
 
-        result.Status.Should().Be(CookpadRecipeDetailsStatus.Success);
-        result.Details.Should().NotBeNull();
-        result.Details!.MethodSteps.Should().Equal("Slice potatoes", "Pan fry until golden");
+        result.Should().NotBeNull();
+        result!.MethodSteps.Should().Equal("Slice potatoes", "Pan fry until golden");
     }
 
     [Fact]
-    public async Task GetByRecipeIdAsync_WhenStepsAreMissing_ReturnsSuccessWithEmptyMethodSteps()
+    public async Task GetRecipeCardAsync_WhenStepsAreMissing_ReturnsSuccessWithEmptyMethodSteps()
     {
         using var httpClient = new HttpClient(new StubHttpMessageHandler(request =>
         {
@@ -240,13 +238,20 @@ public sealed class CookpadRecipeSearchGatewayTests
             BaseAddress = new Uri("https://cookpad.com")
         };
 
-        var gateway = new CookpadRecipeSearchGateway(httpClient);
+        var repository = new CookpadRecipeRepository(httpClient, new StableRandomValueProvider());
 
-        var result = await gateway.GetByRecipeIdAsync("11111", CancellationToken.None);
+        var result = await repository.GetRecipeCardAsync("11111", CancellationToken.None);
 
-        result.Status.Should().Be(CookpadRecipeDetailsStatus.Success);
-        result.Details.Should().NotBeNull();
-        result.Details!.MethodSteps.Should().BeEmpty();
+        result.Should().NotBeNull();
+        result!.MethodSteps.Should().BeEmpty();
+    }
+
+    private sealed class StableRandomValueProvider : IRandomValueProvider
+    {
+        public int Next()
+        {
+            return 0;
+        }
     }
 
     private sealed class StubHttpMessageHandler(Func<HttpRequestMessage, HttpResponseMessage> responseFactory) : HttpMessageHandler

@@ -1,6 +1,6 @@
-namespace CookingInspiration.Server.infrastructure;
+namespace CookingInspiration.Server.domain;
 
-public sealed record CookpadRecipeDetails(
+public sealed record RecipeCard(
     string RecipeId,
     string Title,
     string CookpadUrl,

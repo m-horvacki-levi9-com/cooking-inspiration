@@ -1,6 +1,7 @@
-using CookingInspiration.Server.infrastructure;
+using CookingInspiration.Server.domain;
 using CookingInspiration.Server.services;
 using FluentAssertions;
+using Microsoft.Extensions.Logging.Abstractions;
 using Moq;
 
 namespace CookingInspiration.Server.Tests.recipes;
@@ -8,77 +9,74 @@ namespace CookingInspiration.Server.Tests.recipes;
 public sealed class RecipeSearchServiceTests
 {
     [Fact]
-    public async Task SearchAsync_WhenKeywordIsWhitespace_ReturnsInvalidKeywordWithoutCallingGateway()
+    public async Task SearchAsync_WhenKeywordIsWhitespace_ReturnsInvalidKeywordWithoutCallingRepository()
     {
-        var gateway = new Mock<ICookpadRecipeSearchGateway>();
-        var service = new RecipeSearchService(gateway.Object, new SequenceRandomValueProvider());
+        var repository = new Mock<IRecipeRepository>();
+        var service = new RecipeSearchService(CreateFactory(repository), NullLogger<RecipeSearchService>.Instance);
 
-        var result = await service.SearchAsync("   ", CancellationToken.None);
+        var result = await service.SearchAsync("   ", "cookpad", CancellationToken.None);
 
         result.Status.Should().Be(RecipeSearchStatus.InvalidKeyword);
         result.Response.Should().BeNull();
-        gateway.Verify(
-            searchGateway => searchGateway.SearchAsync(It.IsAny<string>(), It.IsAny<CancellationToken>()),
+        repository.Verify(
+            r => r.SearchSummariesAsync(It.IsAny<string>(), It.IsAny<CancellationToken>()),
             Times.Never);
     }
 
     [Fact]
-    public async Task SearchAsync_WhenGatewayFails_ReturnsExternalFailure()
+    public async Task SearchAsync_WhenRepositoryReturnsEmptyList_ReturnsExternalFailure()
     {
-        var gateway = new Mock<ICookpadRecipeSearchGateway>();
-        gateway
-            .Setup(searchGateway => searchGateway.SearchAsync("pasta", It.IsAny<CancellationToken>()))
-            .ReturnsAsync(CookpadRecipeSearchResult.Failure());
+        var repository = new Mock<IRecipeRepository>();
+        repository
+            .Setup(r => r.SearchSummariesAsync("pasta", It.IsAny<CancellationToken>()))
+            .ReturnsAsync([]);
 
-        var service = new RecipeSearchService(gateway.Object, new SequenceRandomValueProvider());
+        var service = new RecipeSearchService(CreateFactory(repository), NullLogger<RecipeSearchService>.Instance);
 
-        var result = await service.SearchAsync("pasta", CancellationToken.None);
+        var result = await service.SearchAsync("pasta", "cookpad", CancellationToken.None);
 
         result.Status.Should().Be(RecipeSearchStatus.ExternalFailure);
         result.Response.Should().BeNull();
     }
 
     [Fact]
-    public async Task SearchAsync_WhenGatewayReturnsMoreThanFourRecipes_SelectsFourUsingRandomOrdering()
+    public async Task SearchAsync_WhenRepositoryReturnsRecipes_ReturnsSuccessPayload()
     {
-        var gateway = new Mock<ICookpadRecipeSearchGateway>();
-        gateway
-            .Setup(searchGateway => searchGateway.SearchAsync("pasta", It.IsAny<CancellationToken>()))
-            .ReturnsAsync(CookpadRecipeSearchResult.Success(
+        var repository = new Mock<IRecipeRepository>();
+        repository
+            .Setup(r => r.SearchSummariesAsync("pasta", It.IsAny<CancellationToken>()))
+            .ReturnsAsync(
             [
-                new CookpadRecipeCandidate("1", "Recipe 1", "https://cookpad.com/eng/recipes/1", "https://images/1.jpg", "Description 1"),
-                new CookpadRecipeCandidate("2", "Recipe 2", "https://cookpad.com/eng/recipes/2", "https://images/2.jpg", "Description 2"),
-                new CookpadRecipeCandidate("3", "Recipe 3", "https://cookpad.com/eng/recipes/3", "https://images/3.jpg", "Description 3"),
-                new CookpadRecipeCandidate("4", "Recipe 4", "https://cookpad.com/eng/recipes/4", "https://images/4.jpg", "Description 4"),
-                new CookpadRecipeCandidate("5", "Recipe 5", "https://cookpad.com/eng/recipes/5", "https://images/5.jpg", "Description 5")
-            ]));
+                new RecipeSummary("1", "Recipe 1", "https://cookpad.com/eng/recipes/1", "https://images/1.jpg", "Description 1"),
+                new RecipeSummary("2", "Recipe 2", "https://cookpad.com/eng/recipes/2", "https://images/2.jpg", "Description 2"),
+                new RecipeSummary("3", "Recipe 3", "https://cookpad.com/eng/recipes/3", "https://images/3.jpg", "Description 3"),
+                new RecipeSummary("4", "Recipe 4", "https://cookpad.com/eng/recipes/4", "https://images/4.jpg", "Description 4")
+            ]);
 
-        var service = new RecipeSearchService(gateway.Object, new SequenceRandomValueProvider(50, 10, 40, 20, 30));
+        var service = new RecipeSearchService(CreateFactory(repository), NullLogger<RecipeSearchService>.Instance);
 
-        var result = await service.SearchAsync("pasta", CancellationToken.None);
+        var result = await service.SearchAsync("pasta", "cookpad", CancellationToken.None);
 
         result.Status.Should().Be(RecipeSearchStatus.Success);
         result.Response.Should().NotBeNull();
         result.Response!.Recipes.Should().HaveCount(4);
-        result.Response.Recipes.Select(recipe => recipe.Title).Should().ContainInOrder("Recipe 2", "Recipe 4", "Recipe 5", "Recipe 3");
-        result.Response.Recipes.Select(recipe => recipe.RecipeId).Should().ContainInOrder("2", "4", "5", "3");
     }
 
     [Fact]
-    public async Task SearchAsync_WhenGatewayReturnsFewerThanFourRecipes_ReturnsAllAvailableRecipes()
+    public async Task SearchAsync_WhenRepositoryReturnsTwoRecipes_ReturnsSuccessPayloadWithBoth()
     {
-        var gateway = new Mock<ICookpadRecipeSearchGateway>();
-        gateway
-            .Setup(searchGateway => searchGateway.SearchAsync("soup", It.IsAny<CancellationToken>()))
-            .ReturnsAsync(CookpadRecipeSearchResult.Success(
+        var repository = new Mock<IRecipeRepository>();
+        repository
+            .Setup(r => r.SearchSummariesAsync("soup", It.IsAny<CancellationToken>()))
+            .ReturnsAsync(
             [
-                new CookpadRecipeCandidate("1", "Recipe 1", "https://cookpad.com/eng/recipes/1", null, null),
-                new CookpadRecipeCandidate("2", "Recipe 2", "https://cookpad.com/eng/recipes/2", "https://images/2.jpg", "Description 2")
-            ]));
+                new RecipeSummary("1", "Recipe 1", "https://cookpad.com/eng/recipes/1", null, null),
+                new RecipeSummary("2", "Recipe 2", "https://cookpad.com/eng/recipes/2", "https://images/2.jpg", "Description 2")
+            ]);
 
-        var service = new RecipeSearchService(gateway.Object, new SequenceRandomValueProvider(10, 20));
+        var service = new RecipeSearchService(CreateFactory(repository), NullLogger<RecipeSearchService>.Instance);
 
-        var result = await service.SearchAsync("soup", CancellationToken.None);
+        var result = await service.SearchAsync("soup", "cookpad", CancellationToken.None);
 
         result.Status.Should().Be(RecipeSearchStatus.Success);
         result.Response.Should().NotBeNull();
@@ -89,74 +87,44 @@ public sealed class RecipeSearchServiceTests
     }
 
     [Fact]
-    public async Task SearchAsync_WhenGatewayReturnsNoRecipes_ReturnsSuccessfulEmptyPayload()
+    public async Task SearchAsync_WhenRepositoryReturnsNoRecipes_ReturnsExternalFailure()
     {
-        var gateway = new Mock<ICookpadRecipeSearchGateway>();
-        gateway
-            .Setup(searchGateway => searchGateway.SearchAsync("unknown", It.IsAny<CancellationToken>()))
-            .ReturnsAsync(CookpadRecipeSearchResult.Success([]));
+        var repository = new Mock<IRecipeRepository>();
+        repository
+            .Setup(r => r.SearchSummariesAsync("unknown", It.IsAny<CancellationToken>()))
+            .ReturnsAsync([]);
 
-        var service = new RecipeSearchService(gateway.Object, new SequenceRandomValueProvider());
+        var service = new RecipeSearchService(CreateFactory(repository), NullLogger<RecipeSearchService>.Instance);
 
-        var result = await service.SearchAsync("unknown", CancellationToken.None);
+        var result = await service.SearchAsync("unknown", "cookpad", CancellationToken.None);
 
-        result.Status.Should().Be(RecipeSearchStatus.Success);
-        result.Response.Should().NotBeNull();
-        result.Response!.Recipes.Should().BeEmpty();
+        result.Status.Should().Be(RecipeSearchStatus.ExternalFailure);
+        result.Response.Should().BeNull();
     }
 
     [Fact]
-    public async Task SearchAsync_WhenSearchCardsMissMetadata_EnrichesSelectedRecipesFromDetails()
+    public async Task SearchAsync_WhenRepositoryThrowsException_ReturnsExternalFailure()
     {
-        var gateway = new Mock<ICookpadRecipeSearchGateway>();
-        gateway
-            .Setup(searchGateway => searchGateway.SearchAsync("pasta", It.IsAny<CancellationToken>()))
-            .ReturnsAsync(CookpadRecipeSearchResult.Success(
-            [
-                new CookpadRecipeCandidate("11111", "Recipe 11111", "https://cookpad.com/eng/recipes/11111", null, null),
-                new CookpadRecipeCandidate("22222", "Recipe 22222", "https://cookpad.com/eng/recipes/22222", null, null)
-            ]));
-        gateway
-            .Setup(searchGateway => searchGateway.GetByRecipeIdAsync("11111", It.IsAny<CancellationToken>()))
-            .ReturnsAsync(CookpadRecipeDetailsResult.Success(new CookpadRecipeDetails(
-                "11111",
-                "Creamy Pasta",
-                "https://cookpad.com/eng/recipes/11111",
-                "https://images/1.jpg",
-                "Rich and simple.",
-                ["ignored ingredient"],
-                ["ignored step"])));
-        gateway
-            .Setup(searchGateway => searchGateway.GetByRecipeIdAsync("22222", It.IsAny<CancellationToken>()))
-            .ReturnsAsync(CookpadRecipeDetailsResult.Success(new CookpadRecipeDetails(
-                "22222",
-                "Tomato Soup",
-                "https://cookpad.com/eng/recipes/22222",
-                "https://images/2.jpg",
-                "Comfort in a bowl.",
-                ["ignored ingredient"],
-                ["ignored step"])));
+        var repository = new Mock<IRecipeRepository>();
+        repository
+            .Setup(r => r.SearchSummariesAsync("error", It.IsAny<CancellationToken>()))
+            .ThrowsAsync(new HttpRequestException("Network error"));
 
-        var service = new RecipeSearchService(gateway.Object, new SequenceRandomValueProvider(10, 20));
+        var service = new RecipeSearchService(CreateFactory(repository), NullLogger<RecipeSearchService>.Instance);
 
-        var result = await service.SearchAsync("pasta", CancellationToken.None);
+        var result = await service.SearchAsync("error", "cookpad", CancellationToken.None);
 
-        result.Status.Should().Be(RecipeSearchStatus.Success);
-        result.Response.Should().NotBeNull();
-        result.Response!.Recipes.Should().BeEquivalentTo(
-        [
-            new RecipeSearchRecipe("11111", "Creamy Pasta", "https://cookpad.com/eng/recipes/11111", "https://images/1.jpg", "Rich and simple."),
-            new RecipeSearchRecipe("22222", "Tomato Soup", "https://cookpad.com/eng/recipes/22222", "https://images/2.jpg", "Comfort in a bowl.")
-        ], options => options.WithStrictOrdering());
+        result.Status.Should().Be(RecipeSearchStatus.ExternalFailure);
+        result.Response.Should().BeNull();
     }
 
-    private sealed class SequenceRandomValueProvider(params int[] values) : IRandomValueProvider
+    private static IRecipeRepositoryFactory CreateFactory(Mock<IRecipeRepository> repository)
     {
-        private readonly Queue<int> _values = new(values);
-
-        public int Next()
-        {
-            return _values.Count > 0 ? _values.Dequeue() : 0;
-        }
+        var factory = new Mock<IRecipeRepositoryFactory>();
+        factory
+            .Setup(f => f.Create(It.IsAny<string?>()))
+            .Returns(repository.Object);
+        return factory.Object;
     }
 }
+

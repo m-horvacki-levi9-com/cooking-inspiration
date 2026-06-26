@@ -1,11 +1,19 @@
 using System.Text.Json;
 using System.Text.RegularExpressions;
+using CookingInspiration.Server.domain;
+using CookingInspiration.Server.infrastructure;
 using HtmlAgilityPack;
 
-namespace CookingInspiration.Server.infrastructure;
+namespace CookingInspiration.Server.infrastructure.Cookpad;
 
-public sealed partial class CookpadRecipeSearchGateway(HttpClient httpClient) : ICookpadRecipeSearchGateway
+public sealed partial class CookpadRecipeRepository(
+    HttpClient httpClient,
+    IRandomValueProvider randomValueProvider) : IRecipeRepository
 {
+    public const string BaseUrl = "https://cookpad.com";
+
+    private const int MaximumRecipeCount = 4;
+
     private static readonly string[] NoResultsMarkers =
     [
         "no recipes found",
@@ -15,7 +23,41 @@ public sealed partial class CookpadRecipeSearchGateway(HttpClient httpClient) : 
         "sorry, we could not find any recipes"
     ];
 
-    public async Task<CookpadRecipeSearchResult> SearchAsync(string keyword, CancellationToken cancellationToken)
+    public async Task<IReadOnlyList<RecipeSummary>> SearchSummariesAsync(string keyword, CancellationToken cancellationToken)
+    {
+        var searchResult = await SearchAsync(keyword, cancellationToken);
+        if (!searchResult.IsSuccess)
+        {
+            return [];
+        }
+
+        var selectedRecipes = searchResult.Recipes
+            .OrderBy(_ => randomValueProvider.Next())
+            .Take(MaximumRecipeCount)
+            .ToArray();
+
+        var recipes = await BuildSummariesAsync(selectedRecipes, cancellationToken);
+        return recipes;
+    }
+
+    public async Task<RecipeCard?> GetRecipeCardAsync(string recipeId, CancellationToken cancellationToken)
+    {
+        var detailsResult = await GetByRecipeIdAsync(recipeId, cancellationToken);
+        return detailsResult.Status switch
+        {
+            CookpadRecipeDetailsStatus.Success => new RecipeCard(
+                detailsResult.Details!.RecipeId,
+                detailsResult.Details.Title,
+                detailsResult.Details.CookpadUrl,
+                detailsResult.Details.ImageUrl,
+                detailsResult.Details.Description,
+                detailsResult.Details.Ingredients,
+                detailsResult.Details.MethodSteps),
+            _ => null
+        };
+    }
+
+    private async Task<CookpadRecipeSearchResult> SearchAsync(string keyword, CancellationToken cancellationToken)
     {
         using var response = await httpClient.GetAsync($"/eng/search/{Uri.EscapeDataString(keyword)}", cancellationToken);
         if (!response.IsSuccessStatusCode)
@@ -40,7 +82,7 @@ public sealed partial class CookpadRecipeSearchGateway(HttpClient httpClient) : 
             : CookpadRecipeSearchResult.Success(recipes);
     }
 
-    public async Task<CookpadRecipeDetailsResult> GetByRecipeIdAsync(string recipeId, CancellationToken cancellationToken)
+    private async Task<CookpadRecipeDetailsResult> GetByRecipeIdAsync(string recipeId, CancellationToken cancellationToken)
     {
         using var response = await httpClient.GetAsync($"/eng/recipes/{Uri.EscapeDataString(recipeId)}", cancellationToken);
         if (response.StatusCode == System.Net.HttpStatusCode.NotFound)
@@ -62,6 +104,52 @@ public sealed partial class CookpadRecipeSearchGateway(HttpClient httpClient) : 
         return ParseRecipeDetails(html, recipeId) is { } details
             ? CookpadRecipeDetailsResult.Success(details)
             : CookpadRecipeDetailsResult.Failure();
+    }
+
+    private async Task<IReadOnlyList<RecipeSummary>> BuildSummariesAsync(
+        IReadOnlyList<CookpadRecipeCandidate> selectedRecipes,
+        CancellationToken cancellationToken)
+    {
+        var recipeTasks = selectedRecipes
+            .Select(recipe => BuildSummaryAsync(recipe, cancellationToken))
+            .ToArray();
+
+        return await Task.WhenAll(recipeTasks);
+    }
+
+    private async Task<RecipeSummary> BuildSummaryAsync(
+        CookpadRecipeCandidate recipe,
+        CancellationToken cancellationToken)
+    {
+        var details = await GetDetailsForMissingMetadataAsync(recipe, cancellationToken);
+        var title = NeedsTitleEnrichment(recipe.Title)
+            ? FirstNonEmpty(details?.Title, recipe.Title)!
+            : recipe.Title;
+
+        return new RecipeSummary(
+            recipe.RecipeId,
+            title,
+            FirstNonEmpty(details?.CookpadUrl, recipe.CookpadUrl)!,
+            FirstNonEmpty(recipe.ImageUrl, details?.ImageUrl),
+            FirstNonEmpty(recipe.Description, details?.Description));
+    }
+
+    private async Task<CookpadRecipeDetails?> GetDetailsForMissingMetadataAsync(
+        CookpadRecipeCandidate recipe,
+        CancellationToken cancellationToken)
+    {
+        if (!NeedsMetadataEnrichment(recipe))
+        {
+            return null;
+        }
+
+        var detailsResult = await GetByRecipeIdAsync(recipe.RecipeId, cancellationToken);
+        if (detailsResult.Status != CookpadRecipeDetailsStatus.Success)
+        {
+            return null;
+        }
+
+        return detailsResult.Details;
     }
 
     private static IReadOnlyList<CookpadRecipeCandidate> ParseSearchRecipes(string html)
@@ -293,12 +381,20 @@ public sealed partial class CookpadRecipeSearchGateway(HttpClient httpClient) : 
 
         if (element.ValueKind == JsonValueKind.Array)
         {
-            foreach (var item in element.EnumerateArray())
+            return TryGetRecipeNodeFromArray(element, out recipeNode);
+        }
+
+        recipeNode = default;
+        return false;
+    }
+
+    private static bool TryGetRecipeNodeFromArray(JsonElement arrayElement, out JsonElement recipeNode)
+    {
+        foreach (var item in arrayElement.EnumerateArray())
+        {
+            if (TryGetRecipeNode(item, out recipeNode))
             {
-                if (TryGetRecipeNode(item, out recipeNode))
-                {
-                    return true;
-                }
+                return true;
             }
         }
 
@@ -410,6 +506,19 @@ public sealed partial class CookpadRecipeSearchGateway(HttpClient httpClient) : 
             || html.Contains("JavaScript is disabled in your browser.", StringComparison.OrdinalIgnoreCase);
     }
 
+    private static bool NeedsMetadataEnrichment(CookpadRecipeCandidate recipe)
+    {
+        return NeedsTitleEnrichment(recipe.Title)
+            || string.IsNullOrWhiteSpace(recipe.ImageUrl)
+            || string.IsNullOrWhiteSpace(recipe.Description);
+    }
+
+    private static bool NeedsTitleEnrichment(string title)
+    {
+        return title.StartsWith("Recipe ", StringComparison.OrdinalIgnoreCase)
+            || title.Equals("Recipe", StringComparison.OrdinalIgnoreCase);
+    }
+
     private static bool IsSupportedRecipeHref(string href)
     {
         return href.Contains("/recipes/", StringComparison.OrdinalIgnoreCase)
@@ -451,7 +560,7 @@ public sealed partial class CookpadRecipeSearchGateway(HttpClient httpClient) : 
     {
         return Uri.TryCreate(href, UriKind.Absolute, out var absoluteUri)
             ? absoluteUri.AbsoluteUri
-            : new Uri(new Uri("https://cookpad.com"), href).AbsoluteUri;
+            : new Uri(new Uri(BaseUrl), href).AbsoluteUri;
     }
 
     private static string? GetDescription(HtmlNode linkNode, HtmlNode recipeContextNode)

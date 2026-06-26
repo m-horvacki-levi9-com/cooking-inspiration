@@ -7,7 +7,7 @@ Cooking Inspiration is a weekend meal inspiration SPA. The app currently lets us
 | Area | Status |
 | --- | --- |
 | Frontend | React 18 + TypeScript SPA is implemented with a search form, loading/error/empty states, responsive recipe cards, and Bring! widget integration. |
-| Backend | ASP.NET Core Web API is implemented with `GET /health` and `GET /api/recipes/search?keyword=...`. |
+| Backend | ASP.NET Core Web API is implemented with `GET /health`, `GET /api/recipes/search?keyword=...`, and `GET /api/recipes/{recipeId}`. |
 | Recipe provider | Cookpad search scraping is implemented, including recipe detail enrichment when search cards are incomplete. |
 | Result selection | The backend returns up to 4 recipes per search and randomizes which matches are shown. |
 | Testing | Backend unit/integration tests are present. Frontend unit tests and Playwright smoke coverage are present. |
@@ -41,6 +41,7 @@ client/
     viewModels/
 server/
   controllers/
+  domain/
   infrastructure/
   services/
   tests/
@@ -49,7 +50,7 @@ PoC/
 ```
 
 - `client/` contains the SPA, API client, Bring! integration, unit tests, and Playwright smoke test.
-- `server/` contains the Web API, Cookpad integration, application services, and backend tests.
+- `server/` contains the Web API, domain models (`RecipeSummary`, `RecipeCard`), Cookpad integration, application services, and backend tests.
 - `PoC/` contains the legacy proof-of-concept and is separate from the current app.
 
 ## Run locally
@@ -74,6 +75,7 @@ Available endpoints:
 
 - `GET /health`
 - `GET /api/recipes/search?keyword=pasta`
+- `GET /api/recipes/{recipeId}`
 
 Example health response:
 

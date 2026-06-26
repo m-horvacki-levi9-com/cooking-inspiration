@@ -1,4 +1,4 @@
-namespace CookingInspiration.Server.infrastructure;
+namespace CookingInspiration.Server.infrastructure.Cookpad;
 
 public sealed record CookpadRecipeSearchResult(bool IsSuccess, IReadOnlyList<CookpadRecipeCandidate> Recipes)
 {

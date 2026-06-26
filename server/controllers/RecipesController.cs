@@ -1,3 +1,4 @@
+using CookingInspiration.Server.domain;
 using CookingInspiration.Server.services;
 using Microsoft.AspNetCore.Mvc;
 
@@ -8,9 +9,9 @@ namespace CookingInspiration.Server.controllers;
 public sealed class RecipesController(IRecipeSearchService recipeSearchService, IRecipeDetailsService recipeDetailsService) : ControllerBase
 {
     [HttpGet("search")]
-    public async Task<ActionResult<RecipeSearchResponse>> Search([FromQuery] string? keyword, CancellationToken cancellationToken)
+    public async Task<ActionResult<RecipeSearchResponse>> Search([FromQuery] string? keyword, [FromQuery] string? provider, CancellationToken cancellationToken)
     {
-        var result = await recipeSearchService.SearchAsync(keyword, cancellationToken);
+        var result = await recipeSearchService.SearchAsync(keyword, provider, cancellationToken);
 
         return result.Status switch
         {
@@ -26,9 +27,9 @@ public sealed class RecipesController(IRecipeSearchService recipeSearchService, 
     }
 
     [HttpGet("{recipeId}")]
-    public async Task<ActionResult<RecipeDetailsResponse>> Details([FromRoute] string recipeId, CancellationToken cancellationToken)
+    public async Task<ActionResult<RecipeCard>> Details([FromRoute] string recipeId, [FromQuery] string? provider, CancellationToken cancellationToken)
     {
-        var result = await recipeDetailsService.GetByRecipeIdAsync(recipeId, cancellationToken);
+        var result = await recipeDetailsService.GetByRecipeIdAsync(recipeId, provider, cancellationToken);
 
         return result.Status switch
         {

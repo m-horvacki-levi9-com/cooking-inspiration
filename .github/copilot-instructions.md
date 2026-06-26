@@ -13,6 +13,7 @@ It is using a Bring! integration to allow users to easily add ingredients to the
   - layers in the backend are organized as follows:
     - Controllers: Handle incoming HTTP requests and route them to the appropriate services
     - Services: Contain business logic and, for example, interact with external API wrappers or repositories
+    - Domain: Contains core business models shared across application flow (for example `RecipeSummary` and `RecipeCard`)
     - Infrastructure: Contains code for accessing data through repositories, or external APIs through wrappers
     - Tests: Unit tests for the API controllers, and services
 
@@ -45,6 +46,7 @@ It is using a Bring! integration to allow users to easily add ingredients to the
 
 - server/ : ASP.NET Web API backend code
   - controllers/
+  - domain/
   - services/
   - infrastructure/
   - tests/

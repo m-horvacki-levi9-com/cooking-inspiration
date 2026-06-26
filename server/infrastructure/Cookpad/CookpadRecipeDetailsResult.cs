@@ -1,4 +1,4 @@
-namespace CookingInspiration.Server.infrastructure;
+namespace CookingInspiration.Server.infrastructure.Cookpad;
 
 public enum CookpadRecipeDetailsStatus
 {

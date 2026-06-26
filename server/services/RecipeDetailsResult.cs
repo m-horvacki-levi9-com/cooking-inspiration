@@ -1,3 +1,5 @@
+using CookingInspiration.Server.domain;
+
 namespace CookingInspiration.Server.services;
 
 public enum RecipeDetailsStatus
@@ -8,9 +10,9 @@ public enum RecipeDetailsStatus
     ExternalFailure
 }
 
-public sealed record RecipeDetailsResult(RecipeDetailsStatus Status, RecipeDetailsResponse? Response)
+public sealed record RecipeDetailsResult(RecipeDetailsStatus Status, RecipeCard? Response)
 {
-    public static RecipeDetailsResult Success(RecipeDetailsResponse response)
+    public static RecipeDetailsResult Success(RecipeCard response)
     {
         return new RecipeDetailsResult(RecipeDetailsStatus.Success, response);
     }
