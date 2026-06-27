@@ -19,11 +19,11 @@ const DESCRIPTION_FALLBACK = "Description coming soon.";
 const METHOD_FALLBACK = "Method steps are unavailable for this recipe.";
 
 const dialogPaperSx = {
-  backgroundColor: "rgba(255, 255, 255, 0.97)",
+  backgroundColor: "var(--app-surface-elevated)",
   border: "1px solid var(--app-border)",
   borderRadius: "1.75rem",
   backdropFilter: "blur(20px)",
-  boxShadow: "0 32px 80px rgba(74, 101, 49, 0.18)",
+  boxShadow: "var(--app-shadow)",
   m: { xs: 1.5, sm: 3 },
   maxHeight: { xs: "calc(100% - 1.5rem)", sm: "calc(100% - 4rem)" },
 } as const;
@@ -32,7 +32,7 @@ const sectionCardSx = {
   p: 2,
   border: "1px solid var(--app-border)",
   borderRadius: "1.125rem",
-  backgroundColor: "rgba(240, 247, 231, 0.96)",
+  backgroundColor: "var(--app-surface-strong)",
 } as const;
 
 function RecipeCardModal({
@@ -90,9 +90,9 @@ function RecipeCardModal({
           pb: 1.5,
           pt: 2,
           px: 2.5,
-          borderBottom: "1px solid rgba(127, 168, 73, 0.18)",
+          borderBottom: "1px solid var(--app-border)",
           background:
-            "linear-gradient(180deg, rgba(231, 245, 198, 0.9) 0%, rgba(255, 255, 255, 0) 100%)",
+            "linear-gradient(180deg, rgba(184, 222, 109, 0.2) 0%, rgba(46, 69, 50, 0) 100%)",
         }}
       >
         <Typography
@@ -101,7 +101,7 @@ function RecipeCardModal({
           variant="h6"
           sx={{
             fontWeight: 700,
-            color: "#1d2e1a",
+            color: "var(--app-text-primary)",
             lineHeight: 1.3,
             flex: 1,
             m: 0,
@@ -115,7 +115,7 @@ function RecipeCardModal({
           onClick={onClose}
           size="small"
           sx={{
-            color: "#486048",
+            color: "var(--app-text-secondary)",
             flexShrink: 0,
             mt: "-2px",
             minWidth: "2.75rem",

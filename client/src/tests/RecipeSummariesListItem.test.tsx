@@ -156,7 +156,7 @@ describe("RecipeSummariesListItem", () => {
 
     // Assert
     expect(getComputedStyle(article).backgroundColor).toBe(
-      "rgba(255, 255, 255, 0.94)",
+      "var(--app-surface-muted)",
     );
     expect(getComputedStyle(viewDetailsButton).backgroundColor).toBe(
       "rgb(248, 248, 248)",

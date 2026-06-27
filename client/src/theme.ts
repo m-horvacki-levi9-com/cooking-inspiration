@@ -1,23 +1,23 @@
 import { createTheme } from '@mui/material/styles';
 
 const paletteTokens = {
-  accent: '#b8de6d',
-  accentSoft: '#e7f5c6',
-  accentStrong: '#9dc94f',
-  accentContrast: '#1c2a15',
-  backgroundBase: '#f2f7ea',
-  border: 'rgba(127, 168, 73, 0.22)',
-  borderStrong: 'rgba(127, 168, 73, 0.38)',
-  surface: 'rgba(250, 252, 246, 0.94)',
-  surfaceStrong: 'rgba(255, 255, 255, 0.94)',
-  textMuted: '#637862',
-  textPrimary: '#1d2e1a',
-  textSecondary: '#486048',
+  accent: '#a9d776',
+  accentSoft: '#d8edbf',
+  accentStrong: '#8fbe5f',
+  accentContrast: '#1b2a17',
+  backgroundBase: '#2c3f2f',
+  border: 'rgba(177, 210, 167, 0.26)',
+  borderStrong: 'rgba(205, 230, 177, 0.52)',
+  surface: 'rgba(35, 54, 39, 0.88)',
+  surfaceStrong: 'rgba(42, 62, 46, 0.9)',
+  textMuted: '#b6c8b0',
+  textPrimary: '#f3f8ef',
+  textSecondary: '#d7e5cf',
 } as const;
 
 const theme = createTheme({
   palette: {
-    mode: 'light',
+    mode: 'dark',
     primary: {
       main: paletteTokens.accent,
       light: paletteTokens.accentSoft,
@@ -31,11 +31,11 @@ const theme = createTheme({
     text: {
       primary: paletteTokens.textPrimary,
       secondary: paletteTokens.textSecondary,
-      disabled: 'rgba(29, 46, 26, 0.42)',
+      disabled: 'rgba(243, 248, 239, 0.42)',
     },
     error: {
-      main: '#c84b31',
-      light: '#f6d0c9',
+      main: '#f88f82',
+      light: '#ffd4cf',
     },
     divider: paletteTokens.border,
   },
@@ -95,7 +95,7 @@ const theme = createTheme({
           '&:-webkit-autofill, &:-webkit-autofill:hover, &:-webkit-autofill:focus': {
             borderRadius: '1.125rem',
             caretColor: paletteTokens.textPrimary,
-            WebkitBoxShadow: '0 0 0 100px rgba(255, 255, 255, 0.94) inset',
+            WebkitBoxShadow: '0 0 0 100px rgba(42, 62, 46, 0.9) inset',
             WebkitTextFillColor: paletteTokens.textPrimary,
             transition: 'background-color 5000s ease-in-out 0s',
           },

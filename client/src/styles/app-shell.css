@@ -3,10 +3,10 @@
   display: grid;
   align-content: start;
   padding: 2rem 1.25rem 3rem;
-  background-color: #f2f7ea;
+  background-color: #2c3f2f;
   background-image:
-    radial-gradient(circle at top, rgba(255, 255, 255, 0.48) 0%, rgba(255, 255, 255, 0) 45%),
-    linear-gradient(180deg, rgba(242, 247, 234, 0.9) 0%, rgba(228, 238, 214, 0.94) 100%),
+    radial-gradient(circle at top, rgba(184, 222, 109, 0.2) 0%, rgba(44, 63, 47, 0) 42%),
+    linear-gradient(180deg, rgba(44, 63, 47, 0.84) 0%, rgba(59, 85, 63, 0.9) 100%),
     url('/cooking-bg.jpg');
   background-size: cover;
   background-position: center 35%;
@@ -16,8 +16,8 @@
 @media (min-width: 40rem) {
   .app-shell {
     background-image:
-      radial-gradient(circle at top, rgba(255, 255, 255, 0.44) 0%, rgba(255, 255, 255, 0) 50%),
-      linear-gradient(180deg, rgba(242, 247, 234, 0.86) 0%, rgba(228, 238, 214, 0.9) 100%),
+      radial-gradient(circle at top, rgba(184, 222, 109, 0.17) 0%, rgba(44, 63, 47, 0) 48%),
+      linear-gradient(180deg, rgba(44, 63, 47, 0.8) 0%, rgba(59, 85, 63, 0.86) 100%),
       url('/cooking-bg.jpg');
     background-position: center 30%;
   }
@@ -26,8 +26,8 @@
 @media (min-width: 64rem) {
   .app-shell {
     background-image:
-      radial-gradient(circle at top, rgba(255, 255, 255, 0.4) 0%, rgba(255, 255, 255, 0) 52%),
-      linear-gradient(180deg, rgba(242, 247, 234, 0.82) 0%, rgba(228, 238, 214, 0.86) 100%),
+      radial-gradient(circle at top, rgba(184, 222, 109, 0.14) 0%, rgba(44, 63, 47, 0) 52%),
+      linear-gradient(180deg, rgba(44, 63, 47, 0.76) 0%, rgba(59, 85, 63, 0.82) 100%),
       url('/cooking-bg.jpg');
     background-position: center center;
   }

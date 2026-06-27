@@ -99,7 +99,7 @@ function RecipeSummariesListItem({
         minHeight: { xs: "7.75rem", sm: "8.25rem" },
         border: "1px solid var(--app-border)",
         borderRadius: "1.5rem",
-        backgroundColor: "rgba(255, 255, 255, 0.94)",
+        backgroundColor: "var(--app-surface-muted)",
         boxShadow: "var(--app-shadow-soft)",
         transition: "border-color 0.2s ease, box-shadow 0.2s ease",
         "@media (prefers-reduced-motion: reduce)": {

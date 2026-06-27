@@ -29,7 +29,7 @@ type SearchStatus = "idle" | "loading" | "success" | "empty" | "error";
 type DetailsStatus = "idle" | "loading" | "success" | "error";
 
 const panelSx = {
-  backgroundColor: "rgba(250, 252, 246, 0.94)",
+  backgroundColor: "var(--app-surface)",
   border: "1px solid var(--app-border)",
   borderRadius: "1.75rem",
   boxShadow: "var(--app-shadow)",
@@ -275,7 +275,7 @@ function HomePage() {
         sx={{
           color: "#fff",
           zIndex: (theme) => theme.zIndex.modal + 1,
-          backgroundColor: "rgba(31, 45, 24, 0.42)",
+          backgroundColor: "var(--app-backdrop)",
           backdropFilter: "blur(6px)",
         }}
       >
@@ -289,9 +289,9 @@ function HomePage() {
             px: 3,
             py: 2.5,
             borderRadius: "1.5rem",
-            border: "1px solid rgba(231, 245, 198, 0.28)",
-            backgroundColor: "rgba(22, 36, 17, 0.78)",
-            boxShadow: "0 20px 60px rgba(17, 24, 13, 0.3)",
+            border: "1px solid var(--app-border-strong)",
+            backgroundColor: "var(--app-surface-elevated)",
+            boxShadow: "var(--app-shadow)",
           }}
         >
           <CircularProgress color="inherit" thickness={4.5} size={42} />
