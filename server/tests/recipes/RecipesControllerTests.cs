@@ -11,8 +11,9 @@ namespace CookingInspiration.Server.Tests.recipes;
 public sealed class RecipesControllerTests
 {
     [Fact]
-    public async Task Search_WhenServiceReturnsRecipes_ReturnsOkWithPayload()
+    public async Task GivenSearchServiceReturnsRecipes_WhenSearchIsCalled_ThenReturnsOkWithPayload()
     {
+        // Arrange
         var searchService = new Mock<IRecipeSearchService>();
         var expectedResponse = new RecipeSearchResponse(
         [
@@ -25,15 +26,18 @@ public sealed class RecipesControllerTests
 
         var controller = new RecipesController(searchService.Object, Mock.Of<IRecipeDetailsService>());
 
+        // Act
         var result = await controller.Search("pasta", "cookpad", CancellationToken.None);
 
+        // Assert
         var okResult = result.Result.Should().BeOfType<OkObjectResult>().Subject;
         okResult.Value.Should().BeEquivalentTo(expectedResponse);
     }
 
     [Fact]
-    public async Task Search_WhenServiceRejectsKeyword_ReturnsBadRequestProblemDetails()
+    public async Task GivenSearchServiceRejectsKeyword_WhenSearchIsCalled_ThenReturnsBadRequestProblemDetails()
     {
+        // Arrange
         var searchService = new Mock<IRecipeSearchService>();
         searchService
             .Setup(service => service.SearchAsync(" ", It.IsAny<string?>(), It.IsAny<CancellationToken>()))
@@ -41,8 +45,10 @@ public sealed class RecipesControllerTests
 
         var controller = new RecipesController(searchService.Object, Mock.Of<IRecipeDetailsService>());
 
+    // Act
         var result = await controller.Search(" ", "cookpad", CancellationToken.None);
 
+    // Assert
         var badRequestResult = result.Result.Should().BeOfType<ObjectResult>().Subject;
         badRequestResult.StatusCode.Should().Be(StatusCodes.Status400BadRequest);
         badRequestResult.Value.Should().BeOfType<ProblemDetails>()
@@ -50,8 +56,9 @@ public sealed class RecipesControllerTests
     }
 
     [Fact]
-    public async Task Search_WhenServiceReportsExternalFailure_ReturnsBadGatewayProblemDetails()
+    public async Task GivenSearchServiceReportsExternalFailure_WhenSearchIsCalled_ThenReturnsBadGatewayProblemDetails()
     {
+        // Arrange
         var searchService = new Mock<IRecipeSearchService>();
         searchService
             .Setup(service => service.SearchAsync("pasta", It.IsAny<string?>(), It.IsAny<CancellationToken>()))
@@ -59,8 +66,10 @@ public sealed class RecipesControllerTests
 
         var controller = new RecipesController(searchService.Object, Mock.Of<IRecipeDetailsService>());
 
+    // Act
         var result = await controller.Search("pasta", "cookpad", CancellationToken.None);
 
+    // Assert
         var badGatewayResult = result.Result.Should().BeOfType<ObjectResult>().Subject;
         badGatewayResult.StatusCode.Should().Be(StatusCodes.Status502BadGateway);
         badGatewayResult.Value.Should().BeOfType<ProblemDetails>()
@@ -68,8 +77,9 @@ public sealed class RecipesControllerTests
     }
 
     [Fact]
-    public async Task Details_WhenServiceReturnsRecipe_ReturnsOkWithPayload()
+    public async Task GivenDetailsServiceReturnsRecipe_WhenDetailsIsCalled_ThenReturnsOkWithPayload()
     {
+        // Arrange
         var detailsService = new Mock<IRecipeDetailsService>();
         var expectedResponse = new RecipeCard(
             "1",
@@ -86,15 +96,18 @@ public sealed class RecipesControllerTests
 
         var controller = new RecipesController(Mock.Of<IRecipeSearchService>(), detailsService.Object);
 
+    // Act
         var result = await controller.Details("1", "cookpad", CancellationToken.None);
 
+    // Assert
         var okResult = result.Result.Should().BeOfType<OkObjectResult>().Subject;
         okResult.Value.Should().BeEquivalentTo(expectedResponse);
     }
 
     [Fact]
-    public async Task Details_WhenServiceRejectsRecipeId_ReturnsBadRequestProblemDetails()
+    public async Task GivenDetailsServiceRejectsRecipeId_WhenDetailsIsCalled_ThenReturnsBadRequestProblemDetails()
     {
+        // Arrange
         var detailsService = new Mock<IRecipeDetailsService>();
         detailsService
             .Setup(service => service.GetByRecipeIdAsync(" ", It.IsAny<string?>(), It.IsAny<CancellationToken>()))
@@ -102,8 +115,10 @@ public sealed class RecipesControllerTests
 
         var controller = new RecipesController(Mock.Of<IRecipeSearchService>(), detailsService.Object);
 
+    // Act
         var result = await controller.Details(" ", "cookpad", CancellationToken.None);
 
+    // Assert
         var badRequestResult = result.Result.Should().BeOfType<ObjectResult>().Subject;
         badRequestResult.StatusCode.Should().Be(StatusCodes.Status400BadRequest);
         badRequestResult.Value.Should().BeOfType<ProblemDetails>()
@@ -111,8 +126,9 @@ public sealed class RecipesControllerTests
     }
 
     [Fact]
-    public async Task Details_WhenServiceReportsRecipeMissing_ReturnsNotFoundProblemDetails()
+    public async Task GivenDetailsServiceReportsRecipeMissing_WhenDetailsIsCalled_ThenReturnsNotFoundProblemDetails()
     {
+        // Arrange
         var detailsService = new Mock<IRecipeDetailsService>();
         detailsService
             .Setup(service => service.GetByRecipeIdAsync("404", It.IsAny<string?>(), It.IsAny<CancellationToken>()))
@@ -120,8 +136,10 @@ public sealed class RecipesControllerTests
 
         var controller = new RecipesController(Mock.Of<IRecipeSearchService>(), detailsService.Object);
 
+    // Act
         var result = await controller.Details("404", "cookpad", CancellationToken.None);
 
+    // Assert
         var notFoundResult = result.Result.Should().BeOfType<ObjectResult>().Subject;
         notFoundResult.StatusCode.Should().Be(StatusCodes.Status404NotFound);
         notFoundResult.Value.Should().BeOfType<ProblemDetails>()
@@ -129,8 +147,9 @@ public sealed class RecipesControllerTests
     }
 
     [Fact]
-    public async Task Details_WhenServiceReportsExternalFailure_ReturnsBadGatewayProblemDetails()
+    public async Task GivenDetailsServiceReportsExternalFailure_WhenDetailsIsCalled_ThenReturnsBadGatewayProblemDetails()
     {
+        // Arrange
         var detailsService = new Mock<IRecipeDetailsService>();
         detailsService
             .Setup(service => service.GetByRecipeIdAsync("1", It.IsAny<string?>(), It.IsAny<CancellationToken>()))
@@ -138,8 +157,10 @@ public sealed class RecipesControllerTests
 
         var controller = new RecipesController(Mock.Of<IRecipeSearchService>(), detailsService.Object);
 
+    // Act
         var result = await controller.Details("1", "cookpad", CancellationToken.None);
 
+    // Assert
         var badGatewayResult = result.Result.Should().BeOfType<ObjectResult>().Subject;
         badGatewayResult.StatusCode.Should().Be(StatusCodes.Status502BadGateway);
         badGatewayResult.Value.Should().BeOfType<ProblemDetails>()

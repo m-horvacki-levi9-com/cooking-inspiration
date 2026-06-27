@@ -9,8 +9,9 @@ namespace CookingInspiration.Server.Tests.recipes;
 public sealed class CookpadRecipeRepositoryTests
 {
     [Fact]
-    public async Task SearchSummariesAsync_UsesCookpadEnglishSearchPath()
+    public async Task GivenKeyword_WhenSearchingSummaries_ThenUsesCookpadEnglishSearchPath()
     {
+      // Arrange
         string? requestedPath = null;
         using var httpClient = new HttpClient(new StubHttpMessageHandler(request =>
         {
@@ -26,14 +27,17 @@ public sealed class CookpadRecipeRepositoryTests
 
         var repository = new CookpadRecipeRepository(httpClient, new StableRandomValueProvider());
 
+    // Act
         await repository.SearchSummariesAsync("pasta", CancellationToken.None);
 
+    // Assert
         requestedPath.Should().Be("/eng/search/pasta");
     }
 
     [Fact]
-    public async Task SearchSummariesAsync_WhenResponseContainsValidRecipeSummaries_ReturnsCompactRecipesWithoutIngredients()
+    public async Task GivenValidSearchResponse_WhenSearchingSummaries_ThenReturnsCompactRecipesWithoutIngredients()
     {
+      // Arrange
         using var httpClient = new HttpClient(new StubHttpMessageHandler(_ => new HttpResponseMessage(HttpStatusCode.OK)
         {
             Content = new StringContent(
@@ -66,8 +70,10 @@ public sealed class CookpadRecipeRepositoryTests
 
         var repository = new CookpadRecipeRepository(httpClient, new StableRandomValueProvider());
 
+  // Act
         var result = await repository.SearchSummariesAsync("pasta", CancellationToken.None);
 
+  // Assert
         result.Should().BeEquivalentTo(
         [
            new RecipeSummary("11111", "Creamy Pasta", "https://cookpad.com/eng/recipes/11111", "https://images/1.jpg", "Rich and simple."),
@@ -76,8 +82,9 @@ public sealed class CookpadRecipeRepositoryTests
     }
 
     [Fact]
-    public async Task SearchSummariesAsync_WhenRecipeUrlContainsMeSegmentOnly_NormalizesItToCleanRecipeUrl()
+    public async Task GivenRecipeUrlContainingMeSegment_WhenSearchingSummaries_ThenNormalizesToCleanRecipeUrl()
     {
+      // Arrange
         using var httpClient = new HttpClient(new StubHttpMessageHandler(_ => new HttpResponseMessage(HttpStatusCode.OK)
         {
             Content = new StringContent(
@@ -103,15 +110,18 @@ public sealed class CookpadRecipeRepositoryTests
 
         var repository = new CookpadRecipeRepository(httpClient, new StableRandomValueProvider());
 
+    // Act
         var result = await repository.SearchSummariesAsync("pasta", CancellationToken.None);
 
+    // Assert
         result.Should().ContainSingle();
         result.Single().CookpadUrl.Should().Be("https://cookpad.com/eng/recipes/55555");
     }
 
     [Fact]
-    public async Task GetRecipeCardAsync_WhenJsonLdContainsRecipeInstructions_ReturnsStructuredSteps()
+    public async Task GivenJsonLdContainsRecipeInstructions_WhenGettingRecipeCard_ThenReturnsStructuredSteps()
     {
+      // Arrange
         string? requestedPath = null;
         using var httpClient = new HttpClient(new StubHttpMessageHandler(request =>
         {
@@ -153,8 +163,10 @@ public sealed class CookpadRecipeRepositoryTests
 
         var repository = new CookpadRecipeRepository(httpClient, new StableRandomValueProvider());
 
+  // Act
         var result = await repository.GetRecipeCardAsync("11111", CancellationToken.None);
 
+  // Assert
         result.Should().NotBeNull();
         result!.MethodSteps.Should().Equal("Slice potatoes", "Pan fry until golden");
         result.CookpadUrl.Should().Be("https://cookpad.com/eng/recipes/11111");
@@ -162,8 +174,9 @@ public sealed class CookpadRecipeRepositoryTests
     }
 
     [Fact]
-    public async Task GetRecipeCardAsync_WhenJsonLdHasNoSteps_ParsesStepsFromHtmlFallback()
+    public async Task GivenJsonLdHasNoSteps_WhenGettingRecipeCard_ThenParsesStepsFromHtmlFallback()
     {
+      // Arrange
         using var httpClient = new HttpClient(new StubHttpMessageHandler(request =>
         {
             if (request.RequestUri?.AbsolutePath.Equals("/eng/recipes/11111", StringComparison.OrdinalIgnoreCase) == true)
@@ -201,15 +214,18 @@ public sealed class CookpadRecipeRepositoryTests
 
         var repository = new CookpadRecipeRepository(httpClient, new StableRandomValueProvider());
 
+    // Act
         var result = await repository.GetRecipeCardAsync("11111", CancellationToken.None);
 
+    // Assert
         result.Should().NotBeNull();
         result!.MethodSteps.Should().Equal("Slice potatoes", "Pan fry until golden");
     }
 
     [Fact]
-    public async Task GetRecipeCardAsync_WhenStepsAreMissing_ReturnsSuccessWithEmptyMethodSteps()
+    public async Task GivenStepsAreMissing_WhenGettingRecipeCard_ThenReturnsSuccessWithEmptyMethodSteps()
     {
+      // Arrange
         using var httpClient = new HttpClient(new StubHttpMessageHandler(request =>
         {
             if (request.RequestUri?.AbsolutePath.Equals("/eng/recipes/11111", StringComparison.OrdinalIgnoreCase) == true)
@@ -240,8 +256,10 @@ public sealed class CookpadRecipeRepositoryTests
 
         var repository = new CookpadRecipeRepository(httpClient, new StableRandomValueProvider());
 
+    // Act
         var result = await repository.GetRecipeCardAsync("11111", CancellationToken.None);
 
+    // Assert
         result.Should().NotBeNull();
         result!.MethodSteps.Should().BeEmpty();
     }

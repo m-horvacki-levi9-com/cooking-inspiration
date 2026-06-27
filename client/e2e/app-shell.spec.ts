@@ -1,30 +1,36 @@
-import { expect, test } from '@playwright/test';
+import { expect, test } from "@playwright/test";
 
-test('shows recipe results as a list and opens an accessible detail modal', async ({ page }) => {
+test("GivenRecipeSearchAndDetailsResponses_WhenViewingRecipeDetails_ThenRendersAccessibleDetailModal", async ({
+  page,
+}) => {
+  // Arrange
   await page.setViewportSize({ width: 390, height: 844 });
-  await page.route('https://platform.getbring.com/widgets/import.js', async (route) => {
+  await page.route(
+    "https://platform.getbring.com/widgets/import.js",
+    async (route) => {
+      await route.fulfill({
+        contentType: "application/javascript",
+        body: "",
+      });
+    },
+  );
+  await page.route("**/api/recipes/search?keyword=pasta", async (route) => {
     await route.fulfill({
-      contentType: 'application/javascript',
-      body: '',
-    });
-  });
-  await page.route('**/api/recipes/search?keyword=pasta', async (route) => {
-    await route.fulfill({
-      contentType: 'application/json',
+      contentType: "application/json",
       body: JSON.stringify({
         recipes: [
           {
-            recipeId: '11111',
-            title: 'Creamy Pesto Pasta',
-            cookpadUrl: 'https://cookpad.com/recipe-1',
-            imageUrl: 'https://images.example.com/pasta.jpg',
+            recipeId: "11111",
+            title: "Creamy Pesto Pasta",
+            cookpadUrl: "https://cookpad.com/recipe-1",
+            imageUrl: "https://images.example.com/pasta.jpg",
             description:
-              'A quick pasta dinner with pesto and cream that is easy to read in the modal after opening recipe details.',
+              "A quick pasta dinner with pesto and cream that is easy to read in the modal after opening recipe details.",
           },
           {
-            recipeId: '22222',
-            title: 'Roasted Tomato Soup',
-            cookpadUrl: 'https://cookpad.com/recipe-2',
+            recipeId: "22222",
+            title: "Roasted Tomato Soup",
+            cookpadUrl: "https://cookpad.com/recipe-2",
             imageUrl: null,
             description: null,
           },
@@ -32,49 +38,67 @@ test('shows recipe results as a list and opens an accessible detail modal', asyn
       }),
     });
   });
-  await page.route('**/api/recipes/11111', async (route) => {
+  await page.route("**/api/recipes/11111", async (route) => {
     await route.fulfill({
-      contentType: 'application/json',
+      contentType: "application/json",
       body: JSON.stringify({
-        recipeId: '11111',
-        title: 'Creamy Pesto Pasta',
-        cookpadUrl: 'https://cookpad.com/eng/recipes/11111',
-        imageUrl: 'https://images.example.com/pasta.jpg',
+        recipeId: "11111",
+        title: "Creamy Pesto Pasta",
+        cookpadUrl: "https://cookpad.com/eng/recipes/11111",
+        imageUrl: "https://images.example.com/pasta.jpg",
         description:
-          'A quick pasta dinner with pesto and cream that is easy to read in the modal after opening recipe details.',
-        ingredients: ['Pasta', 'Pesto', 'Cream'],
-        methodSteps: ['Boil pasta.', 'Stir in pesto.', 'Finish with cream.'],
+          "A quick pasta dinner with pesto and cream that is easy to read in the modal after opening recipe details.",
+        ingredients: ["Pasta", "Pesto", "Cream"],
+        methodSteps: ["Boil pasta.", "Stir in pesto.", "Finish with cream."],
       }),
     });
   });
 
-  await page.goto('/');
+  // Act
+  await page.goto("/");
 
   await expect(
-    page.getByRole('textbox', { name: 'What would you like to eat for the weekend?' }),
+    page.getByRole("textbox", {
+      name: "What would you like to eat for the weekend?",
+    }),
   ).toBeVisible();
-  await expect(page.getByRole('button', { name: 'Search' })).toBeDisabled();
+  await expect(page.getByRole("button", { name: "Search" })).toBeDisabled();
 
-  await page.getByRole('textbox', { name: 'What would you like to eat for the weekend?' }).fill('pasta');
-  await page.getByRole('button', { name: 'Search' }).click();
+  await page
+    .getByRole("textbox", {
+      name: "What would you like to eat for the weekend?",
+    })
+    .fill("pasta");
+  await page.getByRole("button", { name: "Search" }).click();
 
-  await expect(page.getByRole('heading', { level: 2, name: 'Recipe ideas' })).toBeVisible();
-  await expect(page.getByRole('article')).toHaveCount(2);
-  await expect(page.getByRole('button', { name: 'View details' })).toHaveCount(2);
-  await expect(page.getByRole('link', { name: 'Import to Bring!' })).toHaveCount(2);
-  await expect(page.getByText('Description coming soon.')).toBeVisible();
+  await expect(
+    page.getByRole("heading", { level: 2, name: "Recipe ideas" }),
+  ).toBeVisible();
+  await expect(page.getByRole("article")).toHaveCount(2);
+  await expect(page.getByRole("button", { name: "View details" })).toHaveCount(
+    2,
+  );
+  await expect(
+    page.getByRole("link", { name: "Import to Bring!" }),
+  ).toHaveCount(2);
+  await expect(page.getByText("Description coming soon.")).toBeVisible();
 
-  await page.getByRole('button', { name: 'View details' }).first().click();
+  await page.getByRole("button", { name: "View details" }).first().click();
 
-  const dialog = page.getByRole('dialog');
+  const dialog = page.getByRole("dialog");
 
+  // Assert
   await expect(dialog).toBeVisible();
-  await expect(page.getByRole('heading', { level: 2, name: 'Creamy Pesto Pasta' })).toBeVisible();
-  await expect(dialog.getByText('Pasta', { exact: true })).toBeVisible();
-  await expect(dialog.getByText('Boil pasta.')).toBeVisible();
+  await expect(
+    page.getByRole("heading", { level: 2, name: "Creamy Pesto Pasta" }),
+  ).toBeVisible();
+  await expect(dialog.getByText("Pasta", { exact: true })).toBeVisible();
+  await expect(dialog.getByText("Boil pasta.")).toBeVisible();
 
-  await page.keyboard.press('Escape');
+  await page.keyboard.press("Escape");
 
   await expect(dialog).toHaveCount(0);
-  await expect(page.getByRole('button', { name: 'View details' }).first()).toBeFocused();
+  await expect(
+    page.getByRole("button", { name: "View details" }).first(),
+  ).toBeFocused();
 });

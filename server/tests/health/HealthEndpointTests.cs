@@ -16,12 +16,15 @@ public sealed class HealthEndpointTests : IClassFixture<WebApplicationFactory<Pr
     }
 
     [Fact]
-    public async Task GetHealth_WhenApplicationStarts_ReturnsHealthyResponse()
+    public async Task GivenApplicationIsRunning_WhenHealthEndpointIsCalled_ThenReturnsHealthyResponse()
     {
+        // Arrange
         using var client = _factory.CreateClient();
 
+        // Act
         var response = await client.GetAsync("/health");
 
+        // Assert
         response.StatusCode.Should().Be(HttpStatusCode.OK);
         var payload = await response.Content.ReadFromJsonAsync<HealthStatusResponse>();
         payload.Should().NotBeNull();

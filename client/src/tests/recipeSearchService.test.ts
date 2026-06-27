@@ -1,93 +1,99 @@
-import { apiClient } from '../services/apiClient';
-import { searchRecipes } from '../services/recipeSearchService';
+import { apiClient } from "../services/apiClient";
+import { searchRecipes } from "../services/recipeSearchService";
 
-describe('searchRecipes', () => {
-  it('requests compact recipes from the backend with the expected keyword query parameter', async () => {
-    const apiClientGetSpy = vi.spyOn(apiClient, 'get').mockResolvedValueOnce({
+describe("searchRecipes", () => {
+  it("GivenKeyword_WhenSearchingRecipes_ThenRequestsSearchEndpointAndReturnsCompactRecipes", async () => {
+    // Arrange
+    const apiClientGetSpy = vi.spyOn(apiClient, "get").mockResolvedValueOnce({
       data: {
         recipes: [
           {
-            recipeId: '11111',
-            title: 'Paprika Chicken',
-            cookpadUrl: 'https://cookpad.com/recipe-1',
+            recipeId: "11111",
+            title: "Paprika Chicken",
+            cookpadUrl: "https://cookpad.com/recipe-1",
             imageUrl: null,
-            description: 'Simple one-pan chicken.',
+            description: "Simple one-pan chicken.",
           },
         ],
       },
       status: 200,
-      statusText: 'OK',
+      statusText: "OK",
       headers: {},
       config: {
         headers: {},
       },
     });
 
-    const recipes = await searchRecipes('paprika');
+    // Act
+    const recipes = await searchRecipes("paprika");
 
-    expect(apiClientGetSpy).toHaveBeenCalledWith('/recipes/search', {
+    // Assert
+    expect(apiClientGetSpy).toHaveBeenCalledWith("/recipes/search", {
       params: {
-        keyword: 'paprika',
+        keyword: "paprika",
       },
     });
     expect(recipes).toEqual([
       {
-        recipeId: '11111',
-        title: 'Paprika Chicken',
-        cookpadUrl: 'https://cookpad.com/recipe-1',
+        recipeId: "11111",
+        title: "Paprika Chicken",
+        cookpadUrl: "https://cookpad.com/recipe-1",
         imageUrl: null,
-        description: 'Simple one-pan chicken.',
+        description: "Simple one-pan chicken.",
       },
     ]);
   });
 
-  it('does not expect ingredients or method steps in compact response items', async () => {
-    vi.spyOn(apiClient, 'get').mockResolvedValueOnce({
+  it("GivenCompactResponseContainsExtraFields_WhenSearchingRecipes_ThenOmitsIngredientsAndMethodStepsFromResults", async () => {
+    // Arrange
+    vi.spyOn(apiClient, "get").mockResolvedValueOnce({
       data: {
         recipes: [
           {
-            recipeId: '22222',
-            title: 'Tomato Toast',
-            cookpadUrl: 'https://cookpad.com/recipe-2',
+            recipeId: "22222",
+            title: "Tomato Toast",
+            cookpadUrl: "https://cookpad.com/recipe-2",
             imageUrl: null,
-            description: 'Quick toast with tomato.',
-            ingredients: ['Tomato', 'Bread'],
-            methodSteps: ['Toast bread'],
+            description: "Quick toast with tomato.",
+            ingredients: ["Tomato", "Bread"],
+            methodSteps: ["Toast bread"],
           },
           {
-            recipeId: '33333',
-            title: 'Butter Rice',
-            cookpadUrl: 'https://cookpad.com/recipe-3',
+            recipeId: "33333",
+            title: "Butter Rice",
+            cookpadUrl: "https://cookpad.com/recipe-3",
             imageUrl: null,
-            description: 'Simple rice side.',
-            methodSteps: ['Cook rice'],
+            description: "Simple rice side.",
+            methodSteps: ["Cook rice"],
           },
         ],
       },
       status: 200,
-      statusText: 'OK',
+      statusText: "OK",
       headers: {},
       config: {
         headers: {},
       },
     });
 
-    const recipes = await searchRecipes('simple');
+    // Act
+    const recipes = await searchRecipes("simple");
 
+    // Assert
     expect(recipes).toEqual([
       {
-        recipeId: '22222',
-        title: 'Tomato Toast',
-        cookpadUrl: 'https://cookpad.com/recipe-2',
+        recipeId: "22222",
+        title: "Tomato Toast",
+        cookpadUrl: "https://cookpad.com/recipe-2",
         imageUrl: null,
-        description: 'Quick toast with tomato.',
+        description: "Quick toast with tomato.",
       },
       {
-        recipeId: '33333',
-        title: 'Butter Rice',
-        cookpadUrl: 'https://cookpad.com/recipe-3',
+        recipeId: "33333",
+        title: "Butter Rice",
+        cookpadUrl: "https://cookpad.com/recipe-3",
         imageUrl: null,
-        description: 'Simple rice side.',
+        description: "Simple rice side.",
       },
     ]);
   });

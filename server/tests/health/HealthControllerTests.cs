@@ -9,8 +9,9 @@ namespace CookingInspiration.Server.Tests.health;
 public sealed class HealthControllerTests
 {
     [Fact]
-    public void Get_WhenServiceReportsHealthy_ReturnsOkWithStatusPayload()
+    public void GivenHealthyServiceResponse_WhenGetIsCalled_ThenReturnsOkWithStatusPayload()
     {
+        // Arrange
         var healthService = new Mock<IHealthService>();
         var expectedResponse = new HealthStatusResponse("healthy");
         healthService
@@ -19,8 +20,10 @@ public sealed class HealthControllerTests
 
         var controller = new HealthController(healthService.Object);
 
+        // Act
         var result = controller.Get();
 
+        // Assert
         var okResult = result.Result.Should().BeOfType<OkObjectResult>().Subject;
         okResult.Value.Should().BeEquivalentTo(expectedResponse);
         healthService.Verify(service => service.GetHealth(), Times.Once);

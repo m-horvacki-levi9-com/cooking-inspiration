@@ -9,13 +9,16 @@ namespace CookingInspiration.Server.Tests.recipes;
 public sealed class RecipeSearchServiceTests
 {
     [Fact]
-    public async Task SearchAsync_WhenKeywordIsWhitespace_ReturnsInvalidKeywordWithoutCallingRepository()
+    public async Task GivenKeywordIsWhitespace_WhenSearchingRecipes_ThenReturnsInvalidKeywordWithoutCallingRepository()
     {
+        // Arrange
         var repository = new Mock<IRecipeRepository>();
         var service = new RecipeSearchService(CreateFactory(repository), NullLogger<RecipeSearchService>.Instance);
 
+        // Act
         var result = await service.SearchAsync("   ", "cookpad", CancellationToken.None);
 
+        // Assert
         result.Status.Should().Be(RecipeSearchStatus.InvalidKeyword);
         result.Response.Should().BeNull();
         repository.Verify(
@@ -24,8 +27,9 @@ public sealed class RecipeSearchServiceTests
     }
 
     [Fact]
-    public async Task SearchAsync_WhenRepositoryReturnsEmptyList_ReturnsExternalFailure()
+    public async Task GivenRepositoryReturnsEmptyList_WhenSearchingRecipes_ThenReturnsExternalFailure()
     {
+        // Arrange
         var repository = new Mock<IRecipeRepository>();
         repository
             .Setup(r => r.SearchSummariesAsync("pasta", It.IsAny<CancellationToken>()))
@@ -33,15 +37,18 @@ public sealed class RecipeSearchServiceTests
 
         var service = new RecipeSearchService(CreateFactory(repository), NullLogger<RecipeSearchService>.Instance);
 
+    // Act
         var result = await service.SearchAsync("pasta", "cookpad", CancellationToken.None);
 
+    // Assert
         result.Status.Should().Be(RecipeSearchStatus.ExternalFailure);
         result.Response.Should().BeNull();
     }
 
     [Fact]
-    public async Task SearchAsync_WhenRepositoryReturnsRecipes_ReturnsSuccessPayload()
+    public async Task GivenRepositoryReturnsRecipes_WhenSearchingRecipes_ThenReturnsSuccessPayload()
     {
+        // Arrange
         var repository = new Mock<IRecipeRepository>();
         repository
             .Setup(r => r.SearchSummariesAsync("pasta", It.IsAny<CancellationToken>()))
@@ -55,16 +62,19 @@ public sealed class RecipeSearchServiceTests
 
         var service = new RecipeSearchService(CreateFactory(repository), NullLogger<RecipeSearchService>.Instance);
 
+    // Act
         var result = await service.SearchAsync("pasta", "cookpad", CancellationToken.None);
 
+    // Assert
         result.Status.Should().Be(RecipeSearchStatus.Success);
         result.Response.Should().NotBeNull();
         result.Response!.Recipes.Should().HaveCount(4);
     }
 
     [Fact]
-    public async Task SearchAsync_WhenRepositoryReturnsTwoRecipes_ReturnsSuccessPayloadWithBoth()
+    public async Task GivenRepositoryReturnsTwoRecipes_WhenSearchingRecipes_ThenReturnsSuccessPayloadWithBoth()
     {
+        // Arrange
         var repository = new Mock<IRecipeRepository>();
         repository
             .Setup(r => r.SearchSummariesAsync("soup", It.IsAny<CancellationToken>()))
@@ -76,8 +86,10 @@ public sealed class RecipeSearchServiceTests
 
         var service = new RecipeSearchService(CreateFactory(repository), NullLogger<RecipeSearchService>.Instance);
 
+    // Act
         var result = await service.SearchAsync("soup", "cookpad", CancellationToken.None);
 
+    // Assert
         result.Status.Should().Be(RecipeSearchStatus.Success);
         result.Response.Should().NotBeNull();
         result.Response!.Recipes.Should().HaveCount(2);
@@ -87,8 +99,9 @@ public sealed class RecipeSearchServiceTests
     }
 
     [Fact]
-    public async Task SearchAsync_WhenRepositoryReturnsNoRecipes_ReturnsExternalFailure()
+    public async Task GivenRepositoryReturnsNoRecipes_WhenSearchingRecipes_ThenReturnsExternalFailure()
     {
+        // Arrange
         var repository = new Mock<IRecipeRepository>();
         repository
             .Setup(r => r.SearchSummariesAsync("unknown", It.IsAny<CancellationToken>()))
@@ -96,15 +109,18 @@ public sealed class RecipeSearchServiceTests
 
         var service = new RecipeSearchService(CreateFactory(repository), NullLogger<RecipeSearchService>.Instance);
 
+    // Act
         var result = await service.SearchAsync("unknown", "cookpad", CancellationToken.None);
 
+    // Assert
         result.Status.Should().Be(RecipeSearchStatus.ExternalFailure);
         result.Response.Should().BeNull();
     }
 
     [Fact]
-    public async Task SearchAsync_WhenRepositoryThrowsException_ReturnsExternalFailure()
+    public async Task GivenRepositoryThrowsException_WhenSearchingRecipes_ThenReturnsExternalFailure()
     {
+        // Arrange
         var repository = new Mock<IRecipeRepository>();
         repository
             .Setup(r => r.SearchSummariesAsync("error", It.IsAny<CancellationToken>()))
@@ -112,8 +128,10 @@ public sealed class RecipeSearchServiceTests
 
         var service = new RecipeSearchService(CreateFactory(repository), NullLogger<RecipeSearchService>.Instance);
 
+        // Act
         var result = await service.SearchAsync("error", "cookpad", CancellationToken.None);
 
+        // Assert
         result.Status.Should().Be(RecipeSearchStatus.ExternalFailure);
         result.Response.Should().BeNull();
     }

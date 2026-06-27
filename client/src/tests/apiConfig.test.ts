@@ -1,11 +1,23 @@
-import { resolveApiBaseUrl } from '../services/apiConfig';
+import { resolveApiBaseUrl } from "../services/apiConfig";
 
-describe('resolveApiBaseUrl', () => {
-  it('defaults to the local proxy path when no environment override is provided', () => {
-    expect(resolveApiBaseUrl()).toBe('/api');
+describe("resolveApiBaseUrl", () => {
+  it("GivenNoEnvironmentOverride_WhenResolvingApiBaseUrl_ThenReturnsLocalProxyPath", () => {
+    // Arrange
+
+    // Act
+    expect(resolveApiBaseUrl()).toBe("/api");
+
+    // Assert
   });
 
-  it('uses the provided environment override when it is not empty', () => {
-    expect(resolveApiBaseUrl('https://localhost:7001/api')).toBe('https://localhost:7001/api');
+  it("GivenEnvironmentOverride_WhenResolvingApiBaseUrl_ThenReturnsProvidedOverride", () => {
+    // Arrange
+    const apiBaseUrl = "https://localhost:7001/api";
+
+    // Act
+    const resolvedBaseUrl = resolveApiBaseUrl(apiBaseUrl);
+
+    // Assert
+    expect(resolvedBaseUrl).toBe("https://localhost:7001/api");
   });
 });

@@ -8,20 +8,24 @@ namespace CookingInspiration.Server.Tests.recipes;
 public sealed class RecipeDetailsServiceTests
 {
     [Fact]
-    public async Task GetByRecipeIdAsync_WhenRecipeIdIsInvalid_ReturnsInvalidRecipeIdWithoutCallingRepository()
+    public async Task GivenInvalidRecipeId_WhenGettingRecipeById_ThenReturnsInvalidRecipeIdWithoutCallingRepository()
     {
+        // Arrange
         var repository = new Mock<IRecipeRepository>();
         var service = new RecipeDetailsService(CreateFactory(repository));
 
+        // Act
         var result = await service.GetByRecipeIdAsync("abc", "cookpad", CancellationToken.None);
 
+        // Assert
         result.Status.Should().Be(RecipeDetailsStatus.InvalidRecipeId);
         repository.Verify(r => r.GetRecipeCardAsync(It.IsAny<string>(), It.IsAny<CancellationToken>()), Times.Never);
     }
 
     [Fact]
-    public async Task GetByRecipeIdAsync_WhenRepositoryReturnsRecipeCard_ReturnsSuccessPayload()
+    public async Task GivenRepositoryReturnsRecipeCard_WhenGettingRecipeById_ThenReturnsSuccessPayload()
     {
+        // Arrange
         var repository = new Mock<IRecipeRepository>();
         repository
             .Setup(r => r.GetRecipeCardAsync("123", It.IsAny<CancellationToken>()))
@@ -29,16 +33,19 @@ public sealed class RecipeDetailsServiceTests
 
         var service = new RecipeDetailsService(CreateFactory(repository));
 
+    // Act
         var result = await service.GetByRecipeIdAsync("123", "cookpad", CancellationToken.None);
 
+    // Assert
         result.Status.Should().Be(RecipeDetailsStatus.Success);
         result.Response.Should().NotBeNull();
         result.Response!.MethodSteps.Should().Equal("Boil pasta");
     }
 
     [Fact]
-    public async Task GetByRecipeIdAsync_WhenRepositoryReturnsNull_ReturnsNotFound()
+    public async Task GivenRepositoryReturnsNull_WhenGettingRecipeById_ThenReturnsNotFound()
     {
+        // Arrange
         var repository = new Mock<IRecipeRepository>();
         repository
             .Setup(r => r.GetRecipeCardAsync("999", It.IsAny<CancellationToken>()))
@@ -46,8 +53,10 @@ public sealed class RecipeDetailsServiceTests
 
         var service = new RecipeDetailsService(CreateFactory(repository));
 
+        // Act
         var result = await service.GetByRecipeIdAsync("999", "cookpad", CancellationToken.None);
 
+        // Assert
         result.Status.Should().Be(RecipeDetailsStatus.NotFound);
         result.Response.Should().BeNull();
     }

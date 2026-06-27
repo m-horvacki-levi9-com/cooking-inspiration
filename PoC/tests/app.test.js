@@ -6,12 +6,20 @@ const path = require("node:path");
 const indexPath = path.join(__dirname, "..", "index.html");
 const html = fs.readFileSync(indexPath, "utf8");
 
-test("renders four featured recipe cards", () => {
+test("GivenPocIndexHtml_WhenCountingRecipeCards_ThenRendersFourFeaturedRecipeCards", () => {
+  // Arrange
+
+  // Act
   const cards = html.match(/class="recipe-card/g) ?? [];
+
+  // Assert
   assert.equal(cards.length, 4);
 });
 
-test("includes Bring widget metadata for each recipe", () => {
+test("GivenPocIndexHtml_WhenValidatingBringMetadata_ThenIncludesBringWidgetMetadataForEachRecipe", () => {
+  // Arrange
+
+  // Act
   const bringSlots = html.match(/data-bring-import="https:\/\/[^"]+"/g) ?? [];
   assert.equal(bringSlots.length, 4);
 
@@ -21,17 +29,27 @@ test("includes Bring widget metadata for each recipe", () => {
   const bringItems = html.match(/data-items="/g) ?? [];
   assert.equal(bringItems.length, 4);
 
-  const bringFallbackLinks = html.match(/href="https:\/\/www\.getbring\.com\/en\/home"/g) ?? [];
+  const bringFallbackLinks =
+    html.match(/href="https:\/\/www\.getbring\.com\/en\/home"/g) ?? [];
+
+  // Assert
   assert.equal(bringFallbackLinks.length, 4);
 });
 
-test("highlights top recipe sources in the page copy", () => {
+test("GivenPocIndexHtml_WhenReadingPageCopy_ThenHighlightsTopRecipeSources", () => {
+  // Arrange
+
+  // Act
   for (const source of [
     "Cookpad",
     "Food Network",
     "The Kitchn",
     "Serious Eats",
   ]) {
-    assert.match(html, new RegExp(source.replace(/[.*+?^${}()|[\]\\]/g, "\\$&")));
+    // Assert
+    assert.match(
+      html,
+      new RegExp(source.replace(/[.*+?^${}()|[\]\\]/g, "\\$&")),
+    );
   }
 });

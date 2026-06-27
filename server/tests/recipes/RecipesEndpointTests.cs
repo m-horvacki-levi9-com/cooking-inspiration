@@ -24,8 +24,9 @@ public sealed class RecipesEndpointTests : IClassFixture<WebApplicationFactory<P
     }
 
     [Fact]
-    public async Task GetSearch_WhenRecipesAreFound_ReturnsFrontendFriendlyPayload()
+    public async Task GivenRecipesAreFound_WhenSearchEndpointIsCalled_ThenReturnsFrontendFriendlyPayload()
     {
+        // Arrange
         using var client = CreateClient(
             CookpadRecipeSearchResult.Success(
             [
@@ -38,8 +39,10 @@ public sealed class RecipesEndpointTests : IClassFixture<WebApplicationFactory<P
             CookpadRecipeDetailsResult.Failure(),
             new SequenceRandomValueProvider(50, 10, 40, 20, 30));
 
+        // Act
         var response = await client.GetAsync("/api/recipes/search?keyword=pasta");
 
+        // Assert
         response.StatusCode.Should().Be(HttpStatusCode.OK);
         var payload = await response.Content.ReadFromJsonAsync<JsonElement>();
         payload.GetProperty("recipes").EnumerateArray().Select(recipe => recipe.GetProperty("title").GetString()).Should().ContainInOrder("Recipe 2", "Recipe 4", "Recipe 5", "Recipe 3");
@@ -48,12 +51,15 @@ public sealed class RecipesEndpointTests : IClassFixture<WebApplicationFactory<P
     }
 
     [Fact]
-    public async Task GetSearch_WhenKeywordIsWhitespace_ReturnsBadRequest()
+    public async Task GivenKeywordIsWhitespace_WhenSearchEndpointIsCalled_ThenReturnsBadRequest()
     {
+        // Arrange
         using var client = CreateClient(CookpadRecipeSearchResult.Success([]), CookpadRecipeDetailsResult.Failure(), new SequenceRandomValueProvider());
 
+        // Act
         var response = await client.GetAsync("/api/recipes/search?keyword=%20%20%20");
 
+        // Assert
         response.StatusCode.Should().Be(HttpStatusCode.BadRequest);
         var payload = await response.Content.ReadFromJsonAsync<ProblemDetails>();
         payload.Should().NotBeNull();
@@ -61,12 +67,15 @@ public sealed class RecipesEndpointTests : IClassFixture<WebApplicationFactory<P
     }
 
     [Fact]
-    public async Task GetSearch_WhenExternalSearchFails_ReturnsBadGateway()
+    public async Task GivenExternalSearchFails_WhenSearchEndpointIsCalled_ThenReturnsBadGateway()
     {
+        // Arrange
         using var client = CreateClient(CookpadRecipeSearchResult.Failure(), CookpadRecipeDetailsResult.Failure(), new SequenceRandomValueProvider());
 
+        // Act
         var response = await client.GetAsync("/api/recipes/search?keyword=pasta");
 
+        // Assert
         response.StatusCode.Should().Be(HttpStatusCode.BadGateway);
         var payload = await response.Content.ReadFromJsonAsync<ProblemDetails>();
         payload.Should().NotBeNull();
@@ -74,8 +83,9 @@ public sealed class RecipesEndpointTests : IClassFixture<WebApplicationFactory<P
     }
 
     [Fact]
-    public async Task GetDetails_WhenRecipeExists_ReturnsDetailedPayload()
+    public async Task GivenRecipeExists_WhenDetailsEndpointIsCalled_ThenReturnsDetailedPayload()
     {
+        // Arrange
         using var client = CreateClient(
             CookpadRecipeSearchResult.Success([]),
             CookpadRecipeDetailsResult.Success(
@@ -89,8 +99,10 @@ public sealed class RecipesEndpointTests : IClassFixture<WebApplicationFactory<P
                     ["Boil pasta", "Mix cream"])),
             new SequenceRandomValueProvider());
 
+                // Act
         var response = await client.GetAsync("/api/recipes/123");
 
+                // Assert
         response.StatusCode.Should().Be(HttpStatusCode.OK);
         var payload = await response.Content.ReadFromJsonAsync<RecipeCard>();
         payload.Should().NotBeNull();
@@ -99,8 +111,9 @@ public sealed class RecipesEndpointTests : IClassFixture<WebApplicationFactory<P
     }
 
     [Fact]
-    public async Task GetDetails_WhenMethodStepsAreMissing_ReturnsSuccessfulPayloadWithEmptySteps()
+    public async Task GivenMethodStepsAreMissing_WhenDetailsEndpointIsCalled_ThenReturnsSuccessfulPayloadWithEmptySteps()
     {
+        // Arrange
         using var client = CreateClient(
             CookpadRecipeSearchResult.Success([]),
             CookpadRecipeDetailsResult.Success(
@@ -114,8 +127,10 @@ public sealed class RecipesEndpointTests : IClassFixture<WebApplicationFactory<P
                     [])),
             new SequenceRandomValueProvider());
 
+                // Act
         var response = await client.GetAsync("/api/recipes/123");
 
+                // Assert
         response.StatusCode.Should().Be(HttpStatusCode.OK);
         var payload = await response.Content.ReadFromJsonAsync<RecipeCard>();
         payload.Should().NotBeNull();

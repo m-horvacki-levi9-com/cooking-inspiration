@@ -1,27 +1,27 @@
-import { render, screen, waitFor } from '@testing-library/react';
-import userEvent from '@testing-library/user-event';
-import { useState } from 'react';
+import { render, screen, waitFor } from "@testing-library/react";
+import userEvent from "@testing-library/user-event";
+import { useState } from "react";
 
-import RecipeDetailModal from '../components/RecipeDetailModal';
-import type { RecipeDetails } from '../services/recipeDetailsService';
-import type { RecipeSearchListItem } from '../services/recipeSearchService';
+import RecipeDetailModal from "../components/RecipeDetailModal";
+import type { RecipeDetails } from "../services/recipeDetailsService";
+import type { RecipeSearchListItem } from "../services/recipeSearchService";
 
 const compactRecipe: RecipeSearchListItem = {
-  recipeId: '11111',
-  title: 'Creamy Pesto Pasta',
-  cookpadUrl: 'https://cookpad.com/recipe-1',
-  imageUrl: 'https://images.example.com/pasta.jpg',
-  description: 'A quick pasta dinner with pesto and cream.',
+  recipeId: "11111",
+  title: "Creamy Pesto Pasta",
+  cookpadUrl: "https://cookpad.com/recipe-1",
+  imageUrl: "https://images.example.com/pasta.jpg",
+  description: "A quick pasta dinner with pesto and cream.",
 };
 
 const detailRecipe: RecipeDetails = {
-  recipeId: '11111',
-  title: 'Creamy Pesto Pasta',
-  cookpadUrl: 'https://cookpad.com/eng/recipes/11111',
-  imageUrl: 'https://images.example.com/pasta.jpg',
-  description: 'A quick pasta dinner with pesto and cream.',
-  ingredients: ['Pasta', 'Pesto', 'Cream'],
-  methodSteps: ['Boil pasta.', 'Stir in pesto.'],
+  recipeId: "11111",
+  title: "Creamy Pesto Pasta",
+  cookpadUrl: "https://cookpad.com/eng/recipes/11111",
+  imageUrl: "https://images.example.com/pasta.jpg",
+  description: "A quick pasta dinner with pesto and cream.",
+  ingredients: ["Pasta", "Pesto", "Cream"],
+  methodSteps: ["Boil pasta.", "Stir in pesto."],
 };
 
 function ModalHarness({
@@ -48,24 +48,39 @@ function ModalHarness({
   );
 }
 
-describe('RecipeDetailModal', () => {
-  it('does not render a dialog when recipe is null', () => {
+describe("RecipeDetailModal", () => {
+  it("GivenNullRecipe_WhenRenderingModal_ThenDoesNotRenderDialog", () => {
+    // Arrange
+
+    // Act
     render(<ModalHarness recipe={null} recipeDetails={null} />);
 
-    expect(screen.queryByRole('dialog')).not.toBeInTheDocument();
+    // Assert
+    expect(screen.queryByRole("dialog")).not.toBeInTheDocument();
   });
 
-  it('renders ingredients and ordered method steps when detail data is available', () => {
-    render(<ModalHarness recipe={compactRecipe} recipeDetails={detailRecipe} />);
+  it("GivenRecipeDetailsAreAvailable_WhenRenderingModal_ThenRendersIngredientsAndOrderedMethodSteps", () => {
+    // Arrange
 
-    expect(screen.getByText('Pasta')).toBeInTheDocument();
-    expect(screen.getByText('Pesto')).toBeInTheDocument();
-    expect(screen.getByRole('list', { name: 'Method steps' })).toBeInTheDocument();
-    expect(screen.getByText('Boil pasta.')).toBeInTheDocument();
-    expect(screen.getByText('Stir in pesto.')).toBeInTheDocument();
+    // Act
+    render(
+      <ModalHarness recipe={compactRecipe} recipeDetails={detailRecipe} />,
+    );
+
+    // Assert
+    expect(screen.getByText("Pasta")).toBeInTheDocument();
+    expect(screen.getByText("Pesto")).toBeInTheDocument();
+    expect(
+      screen.getByRole("list", { name: "Method steps" }),
+    ).toBeInTheDocument();
+    expect(screen.getByText("Boil pasta.")).toBeInTheDocument();
+    expect(screen.getByText("Stir in pesto.")).toBeInTheDocument();
   });
 
-  it('shows method fallback when no method steps are available', () => {
+  it("GivenRecipeDetailsWithoutMethodSteps_WhenRenderingModal_ThenShowsMethodFallbackMessage", () => {
+    // Arrange
+
+    // Act
     render(
       <ModalHarness
         recipe={compactRecipe}
@@ -73,24 +88,40 @@ describe('RecipeDetailModal', () => {
       />,
     );
 
-    expect(screen.getByText('Method steps are unavailable for this recipe.')).toBeInTheDocument();
+    // Assert
+    expect(
+      screen.getByText("Method steps are unavailable for this recipe."),
+    ).toBeInTheDocument();
   });
 
-  it('does not render a View recipe action', () => {
-    render(<ModalHarness recipe={compactRecipe} recipeDetails={detailRecipe} />);
+  it("GivenRecipeModalIsRendered_WhenInspectingActions_ThenDoesNotRenderViewRecipeAction", () => {
+    // Arrange
 
-    expect(screen.queryByRole('link', { name: 'View recipe' })).not.toBeInTheDocument();
+    // Act
+    render(
+      <ModalHarness recipe={compactRecipe} recipeDetails={detailRecipe} />,
+    );
+
+    // Assert
+    expect(
+      screen.queryByRole("link", { name: "View recipe" }),
+    ).not.toBeInTheDocument();
   });
 
-  it('closes the modal when the close button is clicked', async () => {
+  it("GivenOpenRecipeModal_WhenCloseButtonIsClicked_ThenClosesModal", async () => {
+    // Arrange
     const user = userEvent.setup();
 
-    render(<ModalHarness recipe={compactRecipe} recipeDetails={detailRecipe} />);
+    // Act
+    render(
+      <ModalHarness recipe={compactRecipe} recipeDetails={detailRecipe} />,
+    );
 
-    await user.click(screen.getByRole('button', { name: 'Close' }));
+    await user.click(screen.getByRole("button", { name: "Close" }));
 
+    // Assert
     await waitFor(() => {
-      expect(screen.queryByRole('dialog')).not.toBeInTheDocument();
+      expect(screen.queryByRole("dialog")).not.toBeInTheDocument();
     });
   });
 });
