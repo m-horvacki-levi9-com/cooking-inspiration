@@ -1,14 +1,14 @@
-import { useEffect, useRef } from 'react';
+import { useEffect, useRef } from "react";
 
-import Box from '@mui/material/Box';
-import Button from '@mui/material/Button';
-import Typography from '@mui/material/Typography';
+import Box from "@mui/material/Box";
+import Button from "@mui/material/Button";
+import Typography from "@mui/material/Typography";
 
-import type { RecipeSearchListItem } from '../services/recipeSearchService';
-import { appOwnedBringButtonSx } from '../styles/bringButtonStyles';
-import { formatDescriptionPreview } from '../viewModels/recipeListItem';
+import type { RecipeSearchListItem } from "../services/recipeSummariesService";
+import { appOwnedBringButtonSx } from "../styles/bringButtonStyles";
+import { formatDescriptionPreview } from "../viewModels/recipeSummariesListItem";
 
-type RecipeListItemProps = {
+type RecipeSummariesListItemProps = {
   recipe: RecipeSearchListItem;
   onViewDetails: () => void;
 };
@@ -17,25 +17,29 @@ const thumbnailSx = {
   width: { xs: 72, sm: 84 },
   height: { xs: 72, sm: 84 },
   flexShrink: 0,
-  borderRadius: '0.75rem',
-  objectFit: 'cover' as const,
-  display: 'grid',
-  placeItems: 'center',
-  background: 'linear-gradient(135deg, rgba(184, 222, 109, 0.52), rgba(231, 245, 198, 0.88))',
+  borderRadius: "0.75rem",
+  objectFit: "cover" as const,
+  display: "grid",
+  placeItems: "center",
+  background:
+    "linear-gradient(135deg, rgba(184, 222, 109, 0.52), rgba(231, 245, 198, 0.88))",
 } as const;
 
 const bringLinkSx = {
   ...appOwnedBringButtonSx,
-  display: 'inline-flex',
-  alignItems: 'center',
-  justifyContent: 'center',
-  minHeight: '2.25rem',
+  display: "inline-flex",
+  alignItems: "center",
+  justifyContent: "center",
+  minHeight: "2.25rem",
   px: 1.5,
-  textDecoration: 'none',
+  textDecoration: "none",
   fontWeight: 700,
 } as const;
 
-function RecipeListItem({ recipe, onViewDetails }: RecipeListItemProps) {
+function RecipeSummariesListItem({
+  recipe,
+  onViewDetails,
+}: RecipeSummariesListItemProps) {
   const bringButtonRef = useRef<HTMLDivElement | null>(null);
 
   useEffect(() => {
@@ -59,8 +63,8 @@ function RecipeListItem({ recipe, onViewDetails }: RecipeListItemProps) {
       }
       bringImportWidget.render(bringButtonElement, {
         url: recipe.cookpadUrl,
-        language: 'en',
-        theme: 'light',
+        language: "en",
+        theme: "light",
       });
       widgetRendered = true;
     };
@@ -71,10 +75,10 @@ function RecipeListItem({ recipe, onViewDetails }: RecipeListItemProps) {
       return;
     }
 
-    bringScript.addEventListener('load', renderBringWidget);
+    bringScript.addEventListener("load", renderBringWidget);
 
     return () => {
-      bringScript.removeEventListener('load', renderBringWidget);
+      bringScript.removeEventListener("load", renderBringWidget);
     };
   }, [recipe.cookpadUrl]);
 
@@ -84,26 +88,26 @@ function RecipeListItem({ recipe, onViewDetails }: RecipeListItemProps) {
     <Box
       component="article"
       sx={{
-        display: 'grid',
+        display: "grid",
         gridTemplateColumns: {
-          xs: '4.5rem minmax(0, 1fr)',
-          sm: '5.25rem minmax(0, 1fr)',
+          xs: "4.5rem minmax(0, 1fr)",
+          sm: "5.25rem minmax(0, 1fr)",
         },
         gap: 1.5,
-        alignItems: 'start',
+        alignItems: "start",
         p: 1.5,
-        minHeight: { xs: '7.75rem', sm: '8.25rem' },
-        border: '1px solid var(--app-border)',
-        borderRadius: '1.5rem',
-        backgroundColor: 'rgba(255, 255, 255, 0.94)',
-        boxShadow: 'var(--app-shadow-soft)',
-        transition: 'border-color 0.2s ease, box-shadow 0.2s ease',
-        '@media (prefers-reduced-motion: reduce)': {
-          transition: 'none',
+        minHeight: { xs: "7.75rem", sm: "8.25rem" },
+        border: "1px solid var(--app-border)",
+        borderRadius: "1.5rem",
+        backgroundColor: "rgba(255, 255, 255, 0.94)",
+        boxShadow: "var(--app-shadow-soft)",
+        transition: "border-color 0.2s ease, box-shadow 0.2s ease",
+        "@media (prefers-reduced-motion: reduce)": {
+          transition: "none",
         },
-        '&:hover': {
-          borderColor: 'var(--app-border-strong)',
-          boxShadow: 'var(--app-shadow)',
+        "&:hover": {
+          borderColor: "var(--app-border-strong)",
+          boxShadow: "var(--app-shadow)",
         },
       }}
     >
@@ -119,14 +123,19 @@ function RecipeListItem({ recipe, onViewDetails }: RecipeListItemProps) {
           <Typography
             component="span"
             variant="caption"
-            sx={{ px: 1, textAlign: 'center', color: 'var(--app-text-secondary)', fontWeight: 600 }}
+            sx={{
+              px: 1,
+              textAlign: "center",
+              color: "var(--app-text-secondary)",
+              fontWeight: 600,
+            }}
           >
             Image coming soon
           </Typography>
         </Box>
       )}
 
-      <Box sx={{ flex: 1, minWidth: 0, display: 'grid', gap: 0.5 }}>
+      <Box sx={{ flex: 1, minWidth: 0, display: "grid", gap: 0.5 }}>
         <Typography
           component="h3"
           variant="body1"
@@ -134,11 +143,11 @@ function RecipeListItem({ recipe, onViewDetails }: RecipeListItemProps) {
             fontWeight: 700,
             lineHeight: 1.3,
             m: 0,
-            minHeight: '2.3rem',
-            color: 'var(--app-text-primary)',
-            display: '-webkit-box',
-            overflow: 'hidden',
-            WebkitBoxOrient: 'vertical',
+            minHeight: "2.3rem",
+            color: "var(--app-text-primary)",
+            display: "-webkit-box",
+            overflow: "hidden",
+            WebkitBoxOrient: "vertical",
             WebkitLineClamp: 2,
           }}
         >
@@ -148,20 +157,20 @@ function RecipeListItem({ recipe, onViewDetails }: RecipeListItemProps) {
         <Typography
           variant="body2"
           sx={{
-            color: 'var(--app-text-secondary)',
+            color: "var(--app-text-secondary)",
             m: 0,
-            minHeight: '2.5rem',
+            minHeight: "2.5rem",
             lineHeight: 1.4,
-            display: '-webkit-box',
-            overflow: 'hidden',
-            WebkitBoxOrient: 'vertical',
+            display: "-webkit-box",
+            overflow: "hidden",
+            WebkitBoxOrient: "vertical",
             WebkitLineClamp: 2,
           }}
         >
           {descriptionPreview}
         </Typography>
 
-        <Box sx={{ display: 'flex', gap: 0.75, flexWrap: 'wrap', mt: 0.25 }}>
+        <Box sx={{ display: "flex", gap: 0.75, flexWrap: "wrap", mt: 0.25 }}>
           <Button
             variant="contained"
             size="small"
@@ -169,7 +178,7 @@ function RecipeListItem({ recipe, onViewDetails }: RecipeListItemProps) {
             disableElevation
             sx={{
               ...appOwnedBringButtonSx,
-              minHeight: '2.25rem',
+              minHeight: "2.25rem",
               px: 1.5,
             }}
           >
@@ -177,7 +186,7 @@ function RecipeListItem({ recipe, onViewDetails }: RecipeListItemProps) {
           </Button>
 
           {recipe.cookpadUrl ? (
-            <Box sx={{ display: 'inline-flex' }}>
+            <Box sx={{ display: "inline-flex" }}>
               <div ref={bringButtonRef}>
                 <Box
                   component="a"
@@ -197,4 +206,4 @@ function RecipeListItem({ recipe, onViewDetails }: RecipeListItemProps) {
   );
 }
 
-export default RecipeListItem;
+export default RecipeSummariesListItem;

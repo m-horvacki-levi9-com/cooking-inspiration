@@ -1,5 +1,5 @@
 import { apiClient } from '../services/apiClient';
-import { getRecipeDetails } from '../services/recipeDetailsService';
+import { getRecipeDetails } from '../services/recipeCardService';
 
 describe('getRecipeDetails', () => {
   it('GivenRecipeId_WhenFetchingRecipeDetails_ThenRequestsDetailsEndpointAndReturnsMappedRecipe', async () => {

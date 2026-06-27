@@ -1,5 +1,5 @@
 export const DESCRIPTION_PREVIEW_CHARS = 120;
-export const DESCRIPTION_PREVIEW_FALLBACK = 'Description coming soon.';
+export const DESCRIPTION_PREVIEW_FALLBACK = "Description coming soon.";
 
 export function formatDescriptionPreview(description: string | null): string {
   if (!description) {

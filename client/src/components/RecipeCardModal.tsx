@@ -1,48 +1,48 @@
-import Box from '@mui/material/Box';
-import Dialog from '@mui/material/Dialog';
-import DialogContent from '@mui/material/DialogContent';
-import DialogTitle from '@mui/material/DialogTitle';
-import IconButton from '@mui/material/IconButton';
-import Typography from '@mui/material/Typography';
+import Box from "@mui/material/Box";
+import Dialog from "@mui/material/Dialog";
+import DialogContent from "@mui/material/DialogContent";
+import DialogTitle from "@mui/material/DialogTitle";
+import IconButton from "@mui/material/IconButton";
+import Typography from "@mui/material/Typography";
 
-import type { RecipeDetails } from '../services/recipeDetailsService';
-import type { RecipeSearchListItem } from '../services/recipeSearchService';
+import type { RecipeDetails } from "../services/recipeCardService";
+import type { RecipeSearchListItem } from "../services/recipeSummariesService";
 
-type RecipeDetailModalProps = {
+type RecipeCardModalProps = {
   recipe: RecipeSearchListItem | null;
   recipeDetails: RecipeDetails | null;
   open: boolean;
   onClose: () => void;
 };
 
-const DESCRIPTION_FALLBACK = 'Description coming soon.';
-const METHOD_FALLBACK = 'Method steps are unavailable for this recipe.';
+const DESCRIPTION_FALLBACK = "Description coming soon.";
+const METHOD_FALLBACK = "Method steps are unavailable for this recipe.";
 
 const dialogPaperSx = {
-  backgroundColor: 'rgba(255, 255, 255, 0.97)',
-  border: '1px solid var(--app-border)',
-  borderRadius: '1.75rem',
-  backdropFilter: 'blur(20px)',
-  boxShadow: '0 32px 80px rgba(74, 101, 49, 0.18)',
+  backgroundColor: "rgba(255, 255, 255, 0.97)",
+  border: "1px solid var(--app-border)",
+  borderRadius: "1.75rem",
+  backdropFilter: "blur(20px)",
+  boxShadow: "0 32px 80px rgba(74, 101, 49, 0.18)",
   m: { xs: 1.5, sm: 3 },
-  maxHeight: { xs: 'calc(100% - 1.5rem)', sm: 'calc(100% - 4rem)' },
+  maxHeight: { xs: "calc(100% - 1.5rem)", sm: "calc(100% - 4rem)" },
 } as const;
 
 const sectionCardSx = {
   p: 2,
-  border: '1px solid var(--app-border)',
-  borderRadius: '1.125rem',
-  backgroundColor: 'rgba(240, 247, 231, 0.96)',
+  border: "1px solid var(--app-border)",
+  borderRadius: "1.125rem",
+  backgroundColor: "rgba(240, 247, 231, 0.96)",
 } as const;
 
-function RecipeDetailModal({
+function RecipeCardModal({
   recipe,
   recipeDetails,
   open,
   onClose,
-}: RecipeDetailModalProps) {
+}: RecipeCardModalProps) {
   const handleDialogClose = (_event: unknown, reason: string): void => {
-    if (reason !== 'backdropClick') {
+    if (reason !== "backdropClick") {
       onClose();
     }
   };
@@ -67,15 +67,15 @@ function RecipeDetailModal({
       maxWidth="sm"
       scroll="paper"
       sx={{
-        '& .MuiDialog-paper': dialogPaperSx,
-        '& .MuiBackdrop-root': {
-          backgroundColor: 'var(--app-backdrop)',
-          backdropFilter: 'blur(4px)',
+        "& .MuiDialog-paper": dialogPaperSx,
+        "& .MuiBackdrop-root": {
+          backgroundColor: "var(--app-backdrop)",
+          backdropFilter: "blur(4px)",
         },
-        '@media (prefers-reduced-motion: reduce)': {
-          '& .MuiDialog-paper, & .MuiFade-root': {
-            transition: 'none !important',
-            animation: 'none !important',
+        "@media (prefers-reduced-motion: reduce)": {
+          "& .MuiDialog-paper, & .MuiFade-root": {
+            transition: "none !important",
+            animation: "none !important",
           },
         },
       }}
@@ -83,16 +83,16 @@ function RecipeDetailModal({
       <DialogTitle
         component="div"
         sx={{
-          display: 'flex',
-          alignItems: 'flex-start',
-          justifyContent: 'space-between',
+          display: "flex",
+          alignItems: "flex-start",
+          justifyContent: "space-between",
           gap: 1,
           pb: 1.5,
           pt: 2,
           px: 2.5,
-          borderBottom: '1px solid rgba(127, 168, 73, 0.18)',
+          borderBottom: "1px solid rgba(127, 168, 73, 0.18)",
           background:
-            'linear-gradient(180deg, rgba(231, 245, 198, 0.9) 0%, rgba(255, 255, 255, 0) 100%)',
+            "linear-gradient(180deg, rgba(231, 245, 198, 0.9) 0%, rgba(255, 255, 255, 0) 100%)",
         }}
       >
         <Typography
@@ -101,7 +101,7 @@ function RecipeDetailModal({
           variant="h6"
           sx={{
             fontWeight: 700,
-            color: '#1d2e1a',
+            color: "#1d2e1a",
             lineHeight: 1.3,
             flex: 1,
             m: 0,
@@ -115,14 +115,14 @@ function RecipeDetailModal({
           onClick={onClose}
           size="small"
           sx={{
-            color: '#486048',
+            color: "#486048",
             flexShrink: 0,
-            mt: '-2px',
-            minWidth: '2.75rem',
-            minHeight: '2.75rem',
-            '&:hover': {
-              color: 'var(--app-text-primary)',
-              background: 'var(--app-accent-soft)',
+            mt: "-2px",
+            minWidth: "2.75rem",
+            minHeight: "2.75rem",
+            "&:hover": {
+              color: "var(--app-text-primary)",
+              background: "var(--app-accent-soft)",
             },
           }}
         >
@@ -138,19 +138,23 @@ function RecipeDetailModal({
               src={resolvedRecipe.imageUrl}
               alt={resolvedRecipe.title}
               sx={{
-                width: '100%',
+                width: "100%",
                 maxHeight: 240,
-                objectFit: 'cover',
-                display: 'block',
-                background: 'var(--app-surface-muted)',
+                objectFit: "cover",
+                display: "block",
+                background: "var(--app-surface-muted)",
               }}
             />
           ) : null}
 
-          <Box sx={{ p: 2.5, display: 'grid', gap: 3 }}>
+          <Box sx={{ p: 2.5, display: "grid", gap: 3 }}>
             <Typography
               variant="body1"
-              sx={{ color: 'var(--app-text-secondary)', lineHeight: 1.75, m: 0 }}
+              sx={{
+                color: "var(--app-text-secondary)",
+                lineHeight: 1.75,
+                m: 0,
+              }}
             >
               {description}
             </Typography>
@@ -159,7 +163,12 @@ function RecipeDetailModal({
               <Typography
                 component="h3"
                 variant="subtitle1"
-                sx={{ fontWeight: 700, color: 'var(--app-text-primary)', mb: 1.5, m: 0 }}
+                sx={{
+                  fontWeight: 700,
+                  color: "var(--app-text-primary)",
+                  mb: 1.5,
+                  m: 0,
+                }}
               >
                 Ingredients
               </Typography>
@@ -171,17 +180,24 @@ function RecipeDetailModal({
                     m: 0,
                     mt: 1,
                     pl: 2.5,
-                    color: 'var(--app-text-secondary)',
-                    display: 'grid',
+                    color: "var(--app-text-secondary)",
+                    display: "grid",
                     gap: 0.5,
                   }}
                 >
                   {ingredients.map((ingredient, index) => (
-                    <li key={`${resolvedRecipe.cookpadUrl}-ingredient-${index}`}>{ingredient}</li>
+                    <li
+                      key={`${resolvedRecipe.cookpadUrl}-ingredient-${index}`}
+                    >
+                      {ingredient}
+                    </li>
                   ))}
                 </Box>
               ) : (
-                <Typography variant="body2" sx={{ color: 'var(--app-text-secondary)', mt: 1 }}>
+                <Typography
+                  variant="body2"
+                  sx={{ color: "var(--app-text-secondary)", mt: 1 }}
+                >
                   Ingredients coming soon.
                 </Typography>
               )}
@@ -191,7 +207,7 @@ function RecipeDetailModal({
               <Typography
                 component="h3"
                 variant="subtitle1"
-                sx={{ fontWeight: 700, color: 'var(--app-text-primary)', m: 0 }}
+                sx={{ fontWeight: 700, color: "var(--app-text-primary)", m: 0 }}
               >
                 Method
               </Typography>
@@ -204,17 +220,22 @@ function RecipeDetailModal({
                     m: 0,
                     mt: 1,
                     pl: 2.5,
-                    color: 'var(--app-text-secondary)',
-                    display: 'grid',
+                    color: "var(--app-text-secondary)",
+                    display: "grid",
                     gap: 0.5,
                   }}
                 >
                   {methodSteps.map((step, index) => (
-                    <li key={`${resolvedRecipe.cookpadUrl}-step-${index}`}>{step}</li>
+                    <li key={`${resolvedRecipe.cookpadUrl}-step-${index}`}>
+                      {step}
+                    </li>
                   ))}
                 </Box>
               ) : (
-                <Typography variant="body2" sx={{ color: 'var(--app-text-secondary)', mt: 1 }}>
+                <Typography
+                  variant="body2"
+                  sx={{ color: "var(--app-text-secondary)", mt: 1 }}
+                >
                   {METHOD_FALLBACK}
                 </Typography>
               )}
@@ -226,4 +247,4 @@ function RecipeDetailModal({
   );
 }
 
-export default RecipeDetailModal;
+export default RecipeCardModal;

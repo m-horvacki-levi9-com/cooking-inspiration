@@ -1,5 +1,5 @@
 import { apiClient } from '../services/apiClient';
-import { searchRecipes } from '../services/recipeSearchService';
+import { searchRecipes } from '../services/recipeSummariesService';
 
 describe('searchRecipes', () => {
   it('GivenKeyword_WhenSearchingRecipes_ThenRequestsSearchEndpointAndReturnsCompactRecipes', async () => {
