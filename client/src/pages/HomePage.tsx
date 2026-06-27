@@ -222,7 +222,7 @@ function HomePage() {
             sx={{ m: 0, p: '0 1.5rem 1.5rem', listStyle: 'none', display: 'grid', gap: 1.5 }}
           >
             {recipes.map((recipe, index) => (
-              <li key={`${recipe.cookpadUrl || recipe.title}-${index}`}>
+              <li key={`${recipe.cookpadUrl ?? recipe.title}-${index}`}>
                 <RecipeListItem
                   recipe={recipe}
                   onViewDetails={() => handleViewDetails(recipe)}
